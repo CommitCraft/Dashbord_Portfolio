@@ -8,6 +8,7 @@ const Top = styled.div`
   max-width: 100%;
   gap: 12px;
 `;
+
 const Image = styled.img`
   height: 50px;
   border-radius: 10px;
@@ -16,32 +17,35 @@ const Image = styled.img`
     height: 40px;
   }
 `;
+
 const Body = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
 `;
+
 const Role = styled.div`
   font-size: 18px;
-  font-weight: 600px;
+  font-weight: 600;
   color: ${({ theme }) => theme.text_primary + 99};
   @media only screen and (max-width: 768px) {
     font-size: 14px;
   }
 `;
+
 const Company = styled.div`
   font-size: 14px;
-  font-weight: 500px;
+  font-weight: 500;
   color: ${({ theme }) => theme.text_secondary + 99};
   @media only screen and (max-width: 768px) {
     font-size: 12px;
   }
 `;
+
 const Date = styled.div`
   font-size: 12px;
-  font-weight: 400px;
+  font-weight: 400;
   color: ${({ theme }) => theme.text_secondary + 80};
-
   @media only screen and (max-width: 768px) {
     font-size: 10px;
   }
@@ -57,15 +61,12 @@ const Description = styled.div`
     font-size: 12px;
   }
 `;
+
 const Skills = styled.div`
   width: 100%;
   display: flex;
-  gap: 12px;
-  margin-top: -10px;
-`;
-const Span = styled.div`
-  display: -webkit-box;
-  max-width: 100%;
+  flex-direction: column;
+  margin-top: 10px;
 `;
 
 const Skill = styled.div`
@@ -84,15 +85,17 @@ const ItemWrapper = styled.div`
 `;
 
 const ExperienceCard = ({ experience }) => {
+  const { img, role, company, date, desc, skills } = experience;
+
   return (
     <VerticalTimelineElement
       icon={
         <img
           width="100%"
           height="100%"
-          alt={experience?.company}
+          alt={company}
           style={{ borderRadius: "50%", objectFit: "cover" }}
-          src={experience?.img}
+          src={img}
         />
       }
       contentStyle={{
@@ -107,32 +110,29 @@ const ExperienceCard = ({ experience }) => {
         borderRadius: "6px",
       }}
       contentArrowStyle={{
-        borderRight: "7px solid  rgba(255, 255, 255, 0.3)",
+        borderRight: "7px solid rgba(255, 255, 255, 0.3)",
       }}
-      date={experience?.date}
+      date={date}
     >
       <Top>
-        <Image src={experience?.img} />
+        <Image src={img} alt={`${company} logo`} />
         <Body>
-          <Role>{experience?.role}</Role>
-          <Company>{experience?.company}</Company>
-          <Date>{experience?.date}</Date>
+          <Role>{role}</Role>
+          <Company>{company}</Company>
+          <Date>{date}</Date>
         </Body>
       </Top>
       <Description>
-        {experience?.desc && <Span>{experience.desc}</Span>}
-        {experience?.skills && (
-          <>
-            <br />
-            <Skills>
-              <b>Skills</b>
-              <ItemWrapper>
-                {experience?.skills?.map((skill, index) => (
-                  <Skill>• {skill}</Skill>
-                ))}
-              </ItemWrapper>
-            </Skills>
-          </>
+        {desc && <p>{desc}</p>}
+        {Array.isArray(skills) && skills.length > 0 && (
+          <Skills>
+            <strong>Skills:</strong>
+            <ItemWrapper>
+              {skills.map((skill, index) => (
+                <Skill key={index}>• {skill}</Skill>
+              ))}
+            </ItemWrapper>
+          </Skills>
         )}
       </Description>
     </VerticalTimelineElement>
