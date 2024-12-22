@@ -129,7 +129,7 @@ const Contact = () => {
   const [loading, setLoading] = useState(false);
 
   // Use the environment variable for the API endpoint
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/contacts";
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

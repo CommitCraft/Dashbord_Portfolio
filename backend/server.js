@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 // Configure CORS options
 const corsOptions = {
-  origin: "*" ||"http://localhost:5173/", // Allow all origins
+  origin: ["*","http://localhost:5173/","http://localhost:3002/"], // Allow all origins
   credentials: true, // Allow credentials (cookies)
 };
 app.use(bodyParser.json());
