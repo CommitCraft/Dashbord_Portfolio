@@ -19,17 +19,18 @@ const HeroContainer = styled.div`
   position: relative;
   padding: 10px 30px;
   z-index: 1;
-
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 70% 95%, 0 100%);
+  
   @media (max-width: 960px) {
     padding: 66px 16px;
+    flex-direction: column;
   }
 
   @media (max-width: 640px) {
     padding: 32px 16px;
   }
-
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 70% 95%, 0 100%);
 `;
+
 const HeroInnerContainer = styled.div`
   position: relative;
   display: flex;
@@ -42,6 +43,7 @@ const HeroInnerContainer = styled.div`
     flex-direction: column;
   }
 `;
+
 const HeroLeftContainer = styled.div`
   width: 100%;
   order: 1;
@@ -54,17 +56,19 @@ const HeroLeftContainer = styled.div`
     align-items: center;
   }
 `;
+
 const HeroRightContainer = styled.div`
   width: 100%;
   order: 2;
   display: flex;
   justify-content: end;
+
   @media (max-width: 960px) {
     order: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-contents: center;
+    justify-content: center;
     margin-bottom: 80px;
   }
 
@@ -73,13 +77,12 @@ const HeroRightContainer = styled.div`
   }
 `;
 
-const Title = styled.div`
+const Title = styled.h1`
   font-weight: 700;
-  
   font-size: 50px;
   color: ${({ theme }) => theme.text_primary};
   line-height: 68px;
-
+  
   @media (max-width: 960px) {
     text-align: center;
   }
@@ -136,46 +139,28 @@ const ResumeButton = styled.a`
   -moz-appearance: button;
   appearance: button;
   text-decoration: none;
-
   width: 95%;
   max-width: 300px;
   text-align: center;
   padding: 16px 0;
-
-  background: hsla(271, 100%, 50%, 1);
-  background: linear-gradient(
-    225deg,
-    hsla(271, 100%, 50%, 1) 0%,
-    hsla(294, 100%, 50%, 1) 100%
-  );
-  background: -moz-linear-gradient(
-    225deg,
-    hsla(271, 100%, 50%, 1) 0%,
-    hsla(294, 100%, 50%, 1) 100%
-  );
-  background: -webkit-linear-gradient(
-    225deg,
-    hsla(271, 100%, 50%, 1) 0%,
-    hsla(294, 100%, 50%, 1) 100%
-  );
+  background: linear-gradient(225deg, hsla(271, 100%, 50%, 1) 0%, hsla(294, 100%, 50%, 1) 100%);
   box-shadow: 20px 20px 60px #1f2634, -20px -20px 60px #1f2634;
   border-radius: 50px;
   font-weight: 600;
   font-size: 20px;
 
-     &:hover {
-        transform: scale(1.05);
+  &:hover {
+    transform: scale(1.05);
     transition: all 0.4s ease-in-out;
-    box-shadow:  20px 20px 60px #1F2634,
+    box-shadow: 20px 20px 60px #1f2634;
     filter: brightness(1);
-    }    
-    
-    
-    @media (max-width: 640px) {
-        padding: 12px 0;
-        font-size: 18px;
-    } 
-    color: white;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 0;
+    font-size: 18px;
+  }
+  color: white;
 `;
 
 const Img = styled.img`
@@ -196,23 +181,18 @@ const HeroBg = styled.div`
   position: absolute;
   display: flex;
   justify-content: end;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
   width: 100%;
   height: 100%;
   max-width: 1360px;
   overflow: hidden;
   padding: 0 30px;
-  top: 50%;
-  left: 50%;
-  -webkit-transform: translateX(-50%) translateY(-50%);
-  transform: translateX(-50%) translateY(-50%);
 
   @media (max-width: 960px) {
     justify-content: center;
-    padding: 0 0px;
+    padding: 0 0;
   }
 `;
 
@@ -237,7 +217,7 @@ const Hero = () => {
                   <Span>
                     <Typewriter
                       options={{
-                        strings: Bio.roles,
+                        strings: Bio.roles || ["Developer", "Designer"],
                         autoStart: true,
                         loop: true,
                       }}
@@ -247,17 +227,22 @@ const Hero = () => {
               </motion.div>
 
               <motion.div {...headContentAnimation}>
-                <SubTitle>{Bio.description}</SubTitle>
+                <SubTitle>{Bio.description || "Passionate developer with expertise in MERN stack."}</SubTitle>
               </motion.div>
 
-              <ResumeButton href={Bio.resume} target="_blank">
+              <ResumeButton
+                href={Bio.resume || "#"}
+                target="_blank"
+                aria-label="Open Resume in a new tab"
+              >
                 Check Resume
               </ResumeButton>
             </HeroLeftContainer>
+
             <HeroRightContainer>
               <motion.div {...headContentAnimation}>
                 <Tilt>
-                  <Img src={HeroImg} alt="Vipin Kushwaha" />
+                  <Img src={HeroImg} alt="Portrait of Vipin Kushwaha" />
                 </Tilt>
               </motion.div>
             </HeroRightContainer>
