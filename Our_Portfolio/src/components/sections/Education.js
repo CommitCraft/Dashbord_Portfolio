@@ -1,16 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { VerticalTimeline } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 import styled from "styled-components";
-import { education } from "../../data/constants";
 import EducationCard from "../cards/EducationCard";
 import EarthCanvas from "../canvas/Earth";
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  justify-contnet: center;
-  position: rlative;
+  justify-content: center;
+  position: relative;
   z-index: 1;
   align-items: center;
 `;
@@ -28,6 +28,7 @@ const Wrapper = styled.div`
     flex-direction: column;
   }
 `;
+
 const Title = styled.div`
   font-size: 52px;
   text-align: center;
@@ -39,6 +40,7 @@ const Title = styled.div`
     font-size: 32px;
   }
 `;
+
 const Desc = styled.div`
   font-size: 18px;
   text-align: center;
@@ -50,24 +52,47 @@ const Desc = styled.div`
 `;
 
 const Education = () => {
+  const [educationData, setEducationData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch education data from the API
+  useEffect(() => {
+    const fetchEducationData = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/education`);
+        setEducationData(response.data); // Assuming the response is an array of education objects
+      } catch (err) {
+        setError("Failed to fetch education data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEducationData();
+  }, []);
+
   return (
     <Container id="Education">
       <Wrapper>
         <Title>Education</Title>
-        <Desc
-          style={{
-            marginBottom: "40px",
-          }}
-        >
-          My education has been a journey of self-discovery and growth. My
-          educational details are as follows.
+        <Desc>
+          My education has been a journey of self-discovery and growth. Below are the details:
         </Desc>
 
-        <VerticalTimeline>
-          {education.map((education, index) => (
-            <EducationCard key={`education-${index}`} education={education} />
-          ))}
-        </VerticalTimeline>
+        {/* Handle Loading and Error States */}
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : (
+          <VerticalTimeline>
+            {educationData.map((education, index) => (
+              <EducationCard key={`education-${index}`} education={education} />
+            ))}
+          </VerticalTimeline>
+        )}
+
         <EarthCanvas />
       </Wrapper>
     </Container>
