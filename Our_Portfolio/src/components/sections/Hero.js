@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { Bio } from "../../data/constants"; // You can remove this if not using any hardcoded data
+// import { Bio } from "../../data/constants"; // You can remove this if not using any hardcoded data
 import Typewriter from "typewriter-effect";
 import HeroImg from "../../images/HeroImage.png";
 import HeroBgAnimation from "../HeroBgAnimation";
