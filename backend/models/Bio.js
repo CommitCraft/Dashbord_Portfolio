@@ -1,3 +1,4 @@
+// models/Bio.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
@@ -6,10 +7,10 @@ const Bio = sequelize.define('Bio', {
     type: DataTypes.STRING,
     allowNull: false,
   },
- roles: {
-  type: DataTypes.JSON, // Store roles as a JSON array
-  allowNull: false,
-},
+  roles: {
+    type: DataTypes.JSON, // Store roles as a JSON array
+    allowNull: false,
+  },
   description: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -36,6 +37,10 @@ const Bio = sequelize.define('Bio', {
   },
   facebook: {
     type: DataTypes.STRING,
+    allowNull: true,
+  },
+  image: {
+    type: DataTypes.STRING, // To store the image path
     allowNull: true,
   },
 });

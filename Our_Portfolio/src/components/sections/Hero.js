@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { Bio } from "../../data/constants";
+import { Bio } from "../../data/constants"; // You can remove this if not using any hardcoded data
 import Typewriter from "typewriter-effect";
 import HeroImg from "../../images/HeroImage.png";
 import HeroBgAnimation from "../HeroBgAnimation";
@@ -12,6 +12,7 @@ import {
   headTextAnimation,
 } from "../../utils/motion";
 import StarCanvas from "../canvas/Stars";
+import axios from "axios";
 
 const HeroContainer = styled.div`
   display: flex;
@@ -127,11 +128,6 @@ const SubTitle = styled.div`
   @media (max-width: 960px) {
     text-align: center;
   }
-
-  @media (max-width: 960px) {
-    font-size: 14px;
-    line-height: 32px;
-  }
 `;
 
 const ResumeButton = styled.a`
@@ -197,6 +193,54 @@ const HeroBg = styled.div`
 `;
 
 const Hero = () => {
+  const [bioData, setBioData] = useState(null);
+
+  useEffect(() => {
+    const fetchBioData = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/bio`);
+        
+        // Log the full response to check its structure
+        console.log("Fetched Bio Data:", response.data);
+
+        // Check if response contains expected fields
+        if (response.data) {
+          let { name, roles, description, resume } = response.data[0];
+
+          // If roles is a JSON string, parse it into an array
+          if (typeof roles === "string") {
+            try {
+              roles = JSON.parse(roles);
+              console.log("Parsed Roles:", roles);
+            } catch (error) {
+              console.error("Error parsing roles JSON:", error);
+            }
+          }
+
+          // Log individual fields
+          console.log("Name:", name);
+          console.log("Roles:", roles);
+          console.log("Description:", description);
+          console.log("Resume URL:", resume);
+
+          // Set bio data
+          setBioData({ name, roles, description, resume });
+        } else {
+          console.error("No data returned from API.");
+        }
+        
+      } catch (error) {
+        console.error("Error fetching bio data:", error);
+      }
+    };
+
+    fetchBioData();
+  }, []);
+
+  if (!bioData) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div id="About">
       <HeroContainer>
@@ -204,20 +248,19 @@ const Hero = () => {
           <StarCanvas />
           <HeroBgAnimation />
         </HeroBg>
-
         <motion.div {...headContainerAnimation}>
           <HeroInnerContainer>
             <HeroLeftContainer>
               <motion.div {...headTextAnimation}>
                 <Title>
-                  Hi, I am <br /> {Bio.name}
+                  Hi, I am <br /> {bioData.name}
                 </Title>
                 <TextLoop>
                   I am a
                   <Span>
                     <Typewriter
                       options={{
-                        strings: Bio.roles || ["Developer", "Designer"],
+                        strings: bioData.roles,
                         autoStart: true,
                         loop: true,
                       }}
@@ -227,11 +270,11 @@ const Hero = () => {
               </motion.div>
 
               <motion.div {...headContentAnimation}>
-                <SubTitle>{Bio.description || "Passionate developer with expertise in MERN stack."}</SubTitle>
+                <SubTitle>{bioData.description}</SubTitle>
               </motion.div>
 
               <ResumeButton
-                href={Bio.resume || "#"}
+                href={bioData.resume}
                 target="_blank"
                 aria-label="Open Resume in a new tab"
               >

@@ -1,49 +1,37 @@
-const Bio = require('../models/Bio');
+const Bio = require("../models/Bio");
 
-// Get Bio details
+// Fetch bio details
 const getBio = async (req, res) => {
   try {
-    const bio = await Bio.findOne();
-    if (!bio) {
-      return res.status(404).json({ message: 'Bio not found' });
-    }
+    const bio = await Bio.findAll();
     res.status(200).json(bio);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch bio' });
+    res.status(500).json({ message: "Error fetching bio", error });
   }
 };
 
-// Create or Update Bio details
-const createOrUpdateBio = async (req, res) => {
+// Create a new bio
+const createBio = async (req, res) => {
   try {
-    const { name, roles, description, github, resume, linkedin, twitter, insta, facebook } = req.body;
-
-    const bioData = {
-      name,
-      roles,
-      description,
-      github,
-      resume,
-      linkedin,
-      twitter,
-      insta,
-      facebook
-    };
-
-    // Check if bio already exists
-    const existingBio = await Bio.findOne();
-    if (existingBio) {
-      // If bio exists, update it
-      await Bio.update(bioData, { where: { id: existingBio.id } });
-      return res.status(200).json({ message: 'Bio updated successfully' });
-    }
-
-    // If no bio exists, create a new one
-    const newBio = await Bio.create(bioData);
+    const { name, roles, description, github, linkedin, twitter } = req.body;
+    const image = req.file?.path; // Image path from Multer
+    const newBio = await Bio.create({ name, roles, description, github, linkedin, twitter, image });
     res.status(201).json(newBio);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create or update bio' });
+    res.status(500).json({ message: "Error creating bio", error });
   }
 };
 
-module.exports = { getBio, createOrUpdateBio };
+// Delete a bio
+const deleteBio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const bio = await Bio.destroy({ where: { id } });
+    if (bio) res.status(200).json({ message: "Bio deleted successfully" });
+    else res.status(404).json({ message: "Bio not found" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting bio", error });
+  }
+};
+
+module.exports = { getBio, createBio, deleteBio };

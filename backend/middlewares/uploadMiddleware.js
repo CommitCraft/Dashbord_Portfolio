@@ -1,3 +1,4 @@
+// multerConfig.js
 const multer = require('multer');
 const path = require('path');
 
@@ -13,7 +14,7 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter
+// File filter to allow only image files
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
@@ -22,6 +23,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Initialize multer with storage and file filter
 const upload = multer({ storage, fileFilter });
 
 module.exports = upload;
