@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrashAlt, FaPlus, FaTimes } from 'react-icons/fa';
 
@@ -7,15 +7,15 @@ const About = () => {
   const [formData, setFormData] = useState({
     id: null,
     name: '',
-    roles: '', // Comma-separated input for roles
+    roles: '',
     description: '',
     github: '',
-    resume: null, // File upload
-    image: null, // Image upload
     linkedin: '',
     twitter: '',
     insta: '',
     facebook: '',
+    resume: null,
+    image: null,
   });
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -28,47 +28,57 @@ const About = () => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+    const { name, type, files, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'file' ? files[0] : value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formDataToSubmit = new FormData();
-
-    // Convert roles to JSON array format
-    const rolesArray = formData.roles.split(',').map((role) => role.trim());
-    const finalData = { ...formData, roles: JSON.stringify(rolesArray) };
-
-    Object.keys(finalData).forEach((key) => {
-      formDataToSubmit.append(key, finalData[key]);
+    Object.keys(formData).forEach((key) => {
+      if (formData[key]) {
+        formDataToSubmit.append(key, formData[key]);
+      }
     });
 
-    const apiCall = isEditing
-      ? axios.put(`${import.meta.env.VITE_API_BASE_URL}/about/${formData.id}`, formDataToSubmit)
-      : axios.post(`${import.meta.env.VITE_API_BASE_URL}/about`, formDataToSubmit);
+    try {
+      const response = isEditing
+        ? await axios.put(
+            `${import.meta.env.VITE_API_BASE_URL}/about/${formData.id}`,
+            formDataToSubmit,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          )
+        : await axios.post(`${import.meta.env.VITE_API_BASE_URL}/about`, formDataToSubmit, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
 
-    apiCall
-      .then((response) => {
-        if (isEditing) {
-          setBioData(bioData.map((bio) => (bio.id === formData.id ? response.data : bio)));
-        } else {
-          setBioData([...bioData, response.data]);
-        }
-        resetForm();
-        setIsFormVisible(false);
-      })
-      .catch((error) => console.error('Error saving bio data:', error));
+      if (isEditing) {
+        setBioData((prev) =>
+          prev.map((bio) => (bio.id === formData.id ? response.data : bio))
+        );
+      } else {
+        setBioData((prev) => [...prev, response.data]);
+      }
+
+      resetForm();
+      setIsFormVisible(false);
+    } catch (error) {
+      console.error('Error saving bio data:', error);
+      alert('Failed to save data. Please try again later.');
+    }
   };
 
-  const handleDelete = (id) => {
-    axios
-      .delete(`${import.meta.env.VITE_API_BASE_URL}/about/${id}`)
-      .then(() => setBioData(bioData.filter((bio) => bio.id !== id)))
-      .catch((error) => console.error('Error deleting bio data:', error));
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/about/${id}`);
+      setBioData((prev) => prev.filter((bio) => bio.id !== id));
+    } catch (error) {
+      console.error('Error deleting bio data:', error);
+      alert('Failed to delete. Please try again later.');
+    }
   };
 
   const resetForm = () => {
@@ -78,12 +88,12 @@ const About = () => {
       roles: '',
       description: '',
       github: '',
-      resume: null,
-      image: null,
       linkedin: '',
       twitter: '',
       insta: '',
       facebook: '',
+      resume: null,
+      image: null,
     });
   };
 
@@ -96,7 +106,6 @@ const About = () => {
   const handleEditBio = (bio) => {
     setFormData({
       ...bio,
-      roles: Array.isArray(bio.roles) ? bio.roles.join(', ') : bio.roles,
     });
     setIsEditing(true);
     setIsFormVisible(true);
@@ -111,7 +120,6 @@ const About = () => {
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-semibold mb-4">About Me</h2>
-
       <div className="flex justify-end mb-4">
         <button
           className="bg-blue-500 text-white py-2 px-4 rounded flex items-center gap-2"
@@ -131,7 +139,9 @@ const About = () => {
             >
               <FaTimes size={24} />
             </button>
-            <h3 className="text-lg font-semibold mb-4">{isEditing ? 'Edit Bio' : 'Add New Bio'}</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              {isEditing ? 'Edit Bio' : 'Add New Bio'}
+            </h3>
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -177,46 +187,6 @@ const About = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Profile Image</label>
-                  <input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Resume</label>
-                  <input
-                    type="file"
-                    name="resume"
-                    accept=".pdf"
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">LinkedIn</label>
-                  <input
-                    type="url"
-                    name="linkedin"
-                    value={formData.linkedin}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Twitter</label>
-                  <input
-                    type="url"
-                    name="twitter"
-                    value={formData.twitter}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium">Instagram</label>
                   <input
                     type="url"
@@ -232,6 +202,36 @@ const About = () => {
                     type="url"
                     name="facebook"
                     value={formData.facebook}
+                    onChange={handleChange}
+                    className="border p-2 mt-1 w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">LinkedIn</label>
+                  <input
+                    type="url"
+                    name="linkedin"
+                    value={formData.linkedin}
+                    onChange={handleChange}
+                    className="border p-2 mt-1 w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Profile Image</label>
+                  <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleChange}
+                    className="border p-2 mt-1 w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Resume</label>
+                  <input
+                    type="file"
+                    name="resume"
+                    accept=".pdf,.doc,.docx"
                     onChange={handleChange}
                     className="border p-2 mt-1 w-full"
                   />
@@ -255,77 +255,85 @@ const About = () => {
       )}
 
       <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2">Image</th>
-            <th className="p-2">Name</th>
-            <th className="p-2">Roles</th>
-            <th className="p-2">Description</th>
-            <th className="p-2">GitHub</th>
-            <th className="p-2">LinkedIn</th>
-            <th className="p-2">Twitter</th>
-            <th className="p-2">Instagram</th>
-            <th className="p-2">Facebook</th>
-            <th className="p-2">Resume</th>
-            <th className="p-2">Actions</th>
+        <thead className="bg-gray-200">
+          <tr>
+            <th className="p-3">Image</th>
+            <th className="p-3">Name</th>
+            <th className="p-3">Roles</th>
+            <th className="p-3">Description</th>
+            <th className="p-3">GitHub</th>
+            <th className="p-3">Instagram</th>
+            <th className="p-3">Facebook</th>
+            <th className="p-3">LinkedIn</th>
+            <th className="p-3">Resume</th>
+            <th className="p-3">Actions</th>
           </tr>
         </thead>
         <tbody>
           {bioData.map((bio) => (
-            <tr key={bio.id}>
-              <td className="p-2">
-                {bio.image && <img src={bio.image} alt="Profile" className="w-12 h-12 rounded-full" />}
+            <tr key={bio.id} className="hover:bg-gray-50">
+              <td className="p-3">
+                {bio.image && (
+                  <img
+                    src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${bio.image}`}
+                    alt="Profile"
+                    className="w-12 h-12 rounded-full"
+                  />
+                )}
               </td>
-              <td className="p-2">{bio.name}</td>
-              <td className="p-2">{Array.isArray(bio.roles) ? bio.roles.join(', ') : bio.roles}</td>
-              <td className="p-2">{bio.description}</td>
-              <td className="p-2">
+              <td className="p-3">{bio.name}</td>
+              <td className="p-3">{bio.roles}</td>
+              <td className="p-3">{bio.description}</td>
+              <td className="p-3">
                 {bio.github && (
-                  <a href={bio.github} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                  <a href={bio.github} target="_blank" className="text-blue-600 underline">
                     View
                   </a>
                 )}
               </td>
-              <td className="p-2">
-                {bio.linkedin && (
-                  <a href={bio.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                    View
-                  </a>
-                )}
-              </td>
-              <td className="p-2">
-                {bio.twitter && (
-                  <a href={bio.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                    View
-                  </a>
-                )}
-              </td>
-              <td className="p-2">
+              <td className="p-3">
                 {bio.insta && (
-                  <a href={bio.insta} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                  <a href={bio.insta} target="_blank" className="text-blue-600 underline">
                     View
                   </a>
                 )}
               </td>
-              <td className="p-2">
+              <td className="p-3">
                 {bio.facebook && (
-                  <a href={bio.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                  <a href={bio.facebook} target="_blank" className="text-blue-600 underline">
                     View
                   </a>
                 )}
               </td>
-              <td className="p-2">
+              <td className="p-3">
+                {bio.linkedin && (
+                  <a href={bio.linkedin} target="_blank" className="text-green-600 underline">
+                    View
+                  </a>
+                )}
+              </td>
+              <td className="p-3">
                 {bio.resume && (
-                  <a href={bio.resume} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                    View
+                  <a
+                    href={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${bio.resume}`}
+                    target="_blank"
+                    className="text-red-600 underline"
+                  >
+                    Download
                   </a>
                 )}
               </td>
-              <td className="p-2">
-                <button onClick={() => handleEditBio(bio)} className="mr-2 text-blue-500">
+              <td className="p-3">
+                <button
+                  onClick={() => handleEditBio(bio)}
+                  className="mr-2 text-blue-500 hover:text-blue-700"
+                >
                   <FaEdit />
                 </button>
-                <button onClick={() => handleDelete(bio.id)} className="text-red-500">
+                <button
+                  onClick={() => handleDelete(bio.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
                   <FaTrashAlt />
                 </button>
               </td>

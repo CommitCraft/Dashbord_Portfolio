@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { FaEdit, FaTrashAlt, FaPlus, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
+import { FaEdit, FaTrashAlt, FaPlus, FaTimes } from 'react-icons/fa';
 
-// Modal for Adding or Editing Education
 const EducationFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing }) => {
   const [localFormData, setLocalFormData] = useState(formData);
 
@@ -11,9 +10,9 @@ const EducationFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing 
   }, [formData]);
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
-    setLocalFormData((prevState) => ({
-      ...prevState,
+    const { name, type, value, files } = e.target;
+    setLocalFormData((prev) => ({
+      ...prev,
       [name]: type === 'file' ? files[0] : value,
     }));
   };
@@ -27,98 +26,89 @@ const EducationFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing 
   return (
     isVisible && (
       <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[90%] overflow-hidden relative">
-          {/* Close Icon */}
+        <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[90%] overflow-y-auto">
           <button
             onClick={onClose}
             className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
           >
             <FaTimes size={24} />
           </button>
-          
           <h3 className="text-lg font-semibold mb-4">{isEditing ? 'Edit Education' : 'Add New Education'}</h3>
-          
           <form onSubmit={handleSubmit}>
-            {/* Scrollable Input Fields Area */}
-            <div className="max-h-[300px] overflow-y-auto">
-              <div className="mb-4">
-                <label className="block text-sm font-medium">School</label>
-                <input
-                  type="text"
-                  name="school"
-                  value={localFormData.school}
-                  onChange={handleChange}
-                  className="border p-2 mt-1 w-full"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Degree</label>
-                <input
-                  type="text"
-                  name="degree"
-                  value={localFormData.degree}
-                  onChange={handleChange}
-                  className="border p-2 mt-1 w-full"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Date</label>
-                <input
-                  type="text"
-                  name="date"
-                  value={localFormData.date}
-                  onChange={handleChange}
-                  className="border p-2 mt-1 w-full"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Grade</label>
-                <input
-                  type="text"
-                  name="grade"
-                  value={localFormData.grade}
-                  onChange={handleChange}
-                  className="border p-2 mt-1 w-full"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Description</label>
-                <textarea
-                  name="desc"
-                  value={localFormData.desc}
-                  onChange={handleChange}
-                  className="border p-2 mt-1 w-full"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Image</label>
-                <input
-                  type="file"
-                  name="img"
-                  onChange={handleChange}
-                  className="border p-2 mt-1 w-full"
-                />
-              </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium">School</label>
+              <input
+                type="text"
+                name="school"
+                value={localFormData.school || ''}
+                onChange={handleChange}
+                className="border p-2 mt-1 w-full"
+                required
+              />
             </div>
-            
-            {/* Footer with Submit and Close Buttons */}
-            <div className="flex justify-end gap-4 mt-4">
-              <button
-                type="submit"
-                className="bg-green-500 text-white py-2 px-4 rounded"
-              >
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Degree</label>
+              <input
+                type="text"
+                name="degree"
+                value={localFormData.degree || ''}
+                onChange={handleChange}
+                className="border p-2 mt-1 w-full"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Date</label>
+              <input
+                type="text"
+                name="date"
+                value={localFormData.date || ''}
+                onChange={handleChange}
+                className="border p-2 mt-1 w-full"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Grade</label>
+              <input
+                type="text"
+                name="grade"
+                value={localFormData.grade || ''}
+                onChange={handleChange}
+                className="border p-2 mt-1 w-full"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Description</label>
+              <textarea
+                name="desc"
+                value={localFormData.desc || ''}
+                onChange={handleChange}
+                className="border p-2 mt-1 w-full"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium">Image</label>
+              <input
+                type="file"
+                name="img"
+                onChange={handleChange}
+                className="border p-2 mt-1 w-full"
+              />
+              {localFormData.img && typeof localFormData.img === 'string' && (
+                <img
+                  src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${localFormData.img}`}
+                  alt="Preview"
+                  className="mt-2 w-32 h-32 object-cover rounded"
+                />
+              )}
+            </div>
+            <div className="flex justify-end gap-4">
+              <button type="submit" className="bg-green-500 text-white py-2 px-4 rounded">
                 {isEditing ? 'Update' : 'Submit'}
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="bg-gray-500 text-white py-2 px-4 rounded"
-              >
+              <button type="button" onClick={onClose} className="bg-gray-500 text-white py-2 px-4 rounded">
                 Close
               </button>
             </div>
@@ -132,90 +122,60 @@ const EducationFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing 
 const Education = () => {
   const [education, setEducation] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentEducation, setCurrentEducation] = useState({
-    id: null,
-    img: '',
-    school: '',
-    date: '',
-    grade: '',
-    desc: '',
-    degree: '',
-  });
+  const [currentEducation, setCurrentEducation] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/education`;
 
-  // Fetch education data from API
   useEffect(() => {
     fetchEducation();
   }, []);
 
   const fetchEducation = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/education`);
+      const response = await axios.get(API_BASE_URL);
       setEducation(response.data);
     } catch (error) {
-      console.error('Error fetching education data:', error);
+      console.error('Error fetching education:', error);
     }
   };
 
-  const handleAddNewEducation = () => {
-    setCurrentEducation({
-      id: null,
-      img: '',
-      school: '',
-      date: '',
-      grade: '',
-      desc: '',
-      degree: '',
-    });
+  const handleAddNew = () => {
+    setCurrentEducation({});
     setIsEditing(false);
     setIsModalVisible(true);
   };
 
-  const handleEditEducation = (educationItem) => {
-    setCurrentEducation(educationItem);
+  const handleEdit = (edu) => {
+    setCurrentEducation(edu);
     setIsEditing(true);
     setIsModalVisible(true);
   };
 
-  const handleDeleteEducation = async (id) => {
-    if (window.confirm('Are you sure you want to delete this education?')) {
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure?')) {
       try {
-        await axios.delete(`${API_BASE_URL}/education/${id}`);
-        setEducation((prevEducation) =>
-          prevEducation.filter((educationItem) => educationItem.id !== id)
-        );
+        await axios.delete(`${API_BASE_URL}/${id}`);
+        fetchEducation();
       } catch (error) {
-        console.error('Error deleting education:', error);
+        console.error('Error deleting:', error);
       }
     }
   };
 
-  const handleSubmit = async (educationData) => {
+  const handleSubmit = async (data) => {
     const formData = new FormData();
-    
-    // Append the education data to FormData, including image if provided
-    Object.keys(educationData).forEach((key) => {
-      formData.append(key, educationData[key]);
+    Object.keys(data).forEach((key) => {
+      formData.append(key, data[key]);
     });
 
     try {
-      let response;
-      const updateUrl = `${API_BASE_URL}/education/${educationData.id}`;
-      if (educationData.id) {
-        // Update existing education
-        response = await axios.put(updateUrl, formData);
-        setEducation((prevEducation) =>
-          prevEducation.map((educationItem) =>
-            educationItem.id === educationData.id ? { ...educationItem, ...educationData } : educationItem
-          )
-        );
+      if (data.id) {
+        await axios.put(`${API_BASE_URL}/${data.id}`, formData);
       } else {
-        // Add new education
-        response = await axios.post(`${API_BASE_URL}/education`, formData);
-        setEducation((prevEducation) => [...prevEducation, response.data]);
+        await axios.post(API_BASE_URL, formData);
       }
+      fetchEducation();
     } catch (error) {
       console.error('Error submitting education:', error);
     }
@@ -224,57 +184,46 @@ const Education = () => {
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-semibold mb-4">Education</h2>
-
-      <div className="flex justify-end mb-4">
-        <button
-          className="bg-blue-500 text-white py-2 px-4 rounded flex items-center gap-2"
-          onClick={handleAddNewEducation}
-        >
-          <FaPlus />
-          Add New Education
-        </button>
-      </div>
-
-      {/* Education Table */}
-      <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
+      <button onClick={handleAddNew} className="bg-blue-500 text-white py-2 px-4 rounded flex items-center gap-2">
+        <FaPlus /> Add New
+      </button>
+      <table className="table-auto w-full mt-4 border-collapse border border-gray-200">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-gray-200 p-2 text-left">School</th>
-            <th className="border border-gray-200 p-2 text-left">Degree</th>
-            <th className="border border-gray-200 p-2 text-left">Date</th>
-            <th className="border border-gray-200 p-2 text-left">Grade</th>
-            <th className="border border-gray-200 p-2 text-left">Actions</th>
+            <th className="border p-2">School</th>
+            <th className="border p-2">Degree</th>
+            <th className="border p-2">Date</th>
+            <th className="border p-2">Image</th>
+            <th className="border p-2">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {education.map((educationItem) => (
-            <tr key={educationItem.id} className="hover:bg-gray-50">
-              <td className="border border-gray-200 p-2">{educationItem.school}</td>
-              <td className="border border-gray-200 p-2">{educationItem.degree}</td>
-              <td className="border border-gray-200 p-2">{educationItem.date}</td>
-              <td className="border border-gray-200 p-2">{educationItem.grade}</td>
-              <td className="border border-gray-200 p-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEditEducation(educationItem)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    <FaEdit size={20} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteEducation(educationItem.id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    <FaTrashAlt size={20} />
-                  </button>
-                </div>
+          {education.map((edu) => (
+            <tr key={edu.id}>
+              <td className="border p-2">{edu.school}</td>
+              <td className="border p-2">{edu.degree}</td>
+              <td className="border p-2">{edu.date}</td>
+              <td className="border p-2">
+                {edu.img && (
+                  <img
+                    src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${edu.img}`}
+                    alt={edu.school}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                )}
+              </td>
+              <td className="border p-2">
+                <button onClick={() => handleEdit(edu)} className="text-blue-500 mr-2">
+                  <FaEdit />
+                </button>
+                <button onClick={() => handleDelete(edu.id)} className="text-red-500">
+                  <FaTrashAlt />
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      {/* Modal for Adding or Editing Education */}
       <EducationFormModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
