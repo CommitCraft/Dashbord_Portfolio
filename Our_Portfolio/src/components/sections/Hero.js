@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-// import { Bio } from "../../data/constants"; // You can remove this if not using any hardcoded data
 import Typewriter from "typewriter-effect";
-import HeroImg from "../../images/HeroImage.png";
 import HeroBgAnimation from "../HeroBgAnimation";
 import { Tilt } from "react-tilt";
 import { motion } from "framer-motion";
@@ -198,37 +196,23 @@ const Hero = () => {
   useEffect(() => {
     const fetchBioData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/bio`);
-        
-        // Log the full response to check its structure
-        console.log("Fetched Bio Data:", response.data);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/about`);
 
-        // Check if response contains expected fields
-        if (response.data) {
-          let { name, roles, description, resume } = response.data[0];
+        if (response.data && response.data.length > 0) {
+          let { name, roles, description, resume, image } = response.data[0];
 
-          // If roles is a JSON string, parse it into an array
           if (typeof roles === "string") {
             try {
               roles = JSON.parse(roles);
-              console.log("Parsed Roles:", roles);
             } catch (error) {
               console.error("Error parsing roles JSON:", error);
             }
           }
 
-          // Log individual fields
-          console.log("Name:", name);
-          console.log("Roles:", roles);
-          console.log("Description:", description);
-          console.log("Resume URL:", resume);
-
-          // Set bio data
-          setBioData({ name, roles, description, resume });
+          setBioData({ name, roles, description, resume, image });
         } else {
           console.error("No data returned from API.");
         }
-        
       } catch (error) {
         console.error("Error fetching bio data:", error);
       }
@@ -285,7 +269,7 @@ const Hero = () => {
             <HeroRightContainer>
               <motion.div {...headContentAnimation}>
                 <Tilt>
-                  <Img src={HeroImg} alt="Portrait of Vipin Kushwaha" />
+                  <Img src={`${process.env.REACT_APP_API_URL}${bioData.image}`} alt={`Portrait of ${bioData.name}`} />
                 </Tilt>
               </motion.div>
             </HeroRightContainer>

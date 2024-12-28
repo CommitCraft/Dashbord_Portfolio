@@ -1,8 +1,7 @@
-// models/Bio.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const Bio = sequelize.define('Bio', {
+const About = sequelize.define('Bio', {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -45,4 +44,4 @@ const Bio = sequelize.define('Bio', {
   },
 });
 
-module.exports = Bio;
+module.exports = About;

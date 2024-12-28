@@ -7,78 +7,70 @@ const About = () => {
   const [formData, setFormData] = useState({
     id: null,
     name: '',
-    roles: '',
+    roles: '', // Comma-separated input for roles
     description: '',
     github: '',
-    resume: null,
+    resume: null, // File upload
+    image: null, // Image upload
     linkedin: '',
     twitter: '',
     insta: '',
-    facebook: ''
+    facebook: '',
   });
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch bio data from API
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_BASE_URL}/bio`)
-      .then(response => {
-        setBioData(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching bio data', error);
-      });
+    axios
+      .get(`${import.meta.env.VITE_API_BASE_URL}/about`)
+      .then((response) => setBioData(response.data))
+      .catch((error) => console.error('Error fetching bio data:', error));
   }, []);
 
-  // Handle form data change
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: type === 'file' ? files[0] : value
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'file' ? files[0] : value,
     }));
   };
 
-  // Submit new or updated bio data
   const handleSubmit = (e) => {
     e.preventDefault();
     const formDataToSubmit = new FormData();
-    Object.keys(formData).forEach(key => {
-      formDataToSubmit.append(key, formData[key]);
+
+    // Convert roles to JSON array format
+    const rolesArray = formData.roles.split(',').map((role) => role.trim());
+    const finalData = { ...formData, roles: JSON.stringify(rolesArray) };
+
+    Object.keys(finalData).forEach((key) => {
+      formDataToSubmit.append(key, finalData[key]);
     });
 
-    if (isEditing) {
-      // Update bio item
-      axios.put(`${import.meta.env.VITE_API_BASE_URL}/bio/${formData.id}`, formDataToSubmit)
-        .then(response => {
-          setBioData(bioData.map(bio => (bio.id === formData.id ? response.data : bio)));
-          setIsEditing(false);
-          setIsFormVisible(false);
-          resetForm();
-        })
-        .catch(error => console.error('Error updating bio data', error));
-    } else {
-      // Add new bio item
-      axios.post(`${import.meta.env.VITE_API_BASE_URL}/bio`, formDataToSubmit)
-        .then(response => {
+    const apiCall = isEditing
+      ? axios.put(`${import.meta.env.VITE_API_BASE_URL}/about/${formData.id}`, formDataToSubmit)
+      : axios.post(`${import.meta.env.VITE_API_BASE_URL}/about`, formDataToSubmit);
+
+    apiCall
+      .then((response) => {
+        if (isEditing) {
+          setBioData(bioData.map((bio) => (bio.id === formData.id ? response.data : bio)));
+        } else {
           setBioData([...bioData, response.data]);
-          setIsFormVisible(false);
-          resetForm();
-        })
-        .catch(error => console.error('Error adding bio data', error));
-    }
-  };
-
-  // Delete a bio entry
-  const handleDelete = (id) => {
-    axios.delete(`${import.meta.env.VITE_API_BASE_URL}/bio/${id}`)
-      .then(() => {
-        setBioData(bioData.filter(bio => bio.id !== id));
+        }
+        resetForm();
+        setIsFormVisible(false);
       })
-      .catch(error => console.error('Error deleting bio data', error));
+      .catch((error) => console.error('Error saving bio data:', error));
   };
 
-  // Reset form data
+  const handleDelete = (id) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_BASE_URL}/about/${id}`)
+      .then(() => setBioData(bioData.filter((bio) => bio.id !== id)))
+      .catch((error) => console.error('Error deleting bio data:', error));
+  };
+
   const resetForm = () => {
     setFormData({
       id: null,
@@ -87,39 +79,39 @@ const About = () => {
       description: '',
       github: '',
       resume: null,
+      image: null,
       linkedin: '',
       twitter: '',
       insta: '',
-      facebook: ''
+      facebook: '',
     });
   };
 
-  // Show form with reset data for adding a new bio
   const handleAddNewBio = () => {
     resetForm();
     setIsEditing(false);
     setIsFormVisible(true);
   };
 
-  // Show form for editing a bio
   const handleEditBio = (bio) => {
-    setFormData(bio);
+    setFormData({
+      ...bio,
+      roles: Array.isArray(bio.roles) ? bio.roles.join(', ') : bio.roles,
+    });
     setIsEditing(true);
     setIsFormVisible(true);
   };
 
-  // Cancel form visibility
   const handleCancelForm = () => {
+    resetForm();
     setIsFormVisible(false);
     setIsEditing(false);
-    resetForm();
   };
 
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-semibold mb-4">About Me</h2>
 
-      {/* Add New Bio Button */}
       <div className="flex justify-end mb-4">
         <button
           className="bg-blue-500 text-white py-2 px-4 rounded flex items-center gap-2"
@@ -130,20 +122,17 @@ const About = () => {
         </button>
       </div>
 
-      {/* Form for Adding or Editing Bio */}
       {isFormVisible && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg shadow-lg p-6 w-1/2 max-w-4xl relative">
-            {/* Close Button */}
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={handleCancelForm}
             >
               <FaTimes size={24} />
             </button>
-
             <h3 className="text-lg font-semibold mb-4">{isEditing ? 'Edit Bio' : 'Add New Bio'}</h3>
-            <form onSubmit={handleSubmit} className="overflow-y-auto max-h-96">
+            <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium">Name</label>
@@ -157,7 +146,7 @@ const About = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Roles (comma separated)</label>
+                  <label className="block text-sm font-medium">Roles (comma-separated)</label>
                   <input
                     type="text"
                     name="roles"
@@ -167,7 +156,7 @@ const About = () => {
                     required
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium">Description</label>
                   <textarea
                     name="description"
@@ -177,7 +166,7 @@ const About = () => {
                     required
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium">GitHub</label>
                   <input
                     type="url"
@@ -187,16 +176,27 @@ const About = () => {
                     className="border p-2 mt-1 w-full"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium">Resume</label>
+                <div>
+                  <label className="block text-sm font-medium">Profile Image</label>
                   <input
                     type="file"
-                    name="resume"
+                    name="image"
+                    accept="image/*"
                     onChange={handleChange}
                     className="border p-2 mt-1 w-full"
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
+                  <label className="block text-sm font-medium">Resume</label>
+                  <input
+                    type="file"
+                    name="resume"
+                    accept=".pdf"
+                    onChange={handleChange}
+                    className="border p-2 mt-1 w-full"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium">LinkedIn</label>
                   <input
                     type="url"
@@ -206,7 +206,7 @@ const About = () => {
                     className="border p-2 mt-1 w-full"
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium">Twitter</label>
                   <input
                     type="url"
@@ -216,7 +216,7 @@ const About = () => {
                     className="border p-2 mt-1 w-full"
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium">Instagram</label>
                   <input
                     type="url"
@@ -226,7 +226,7 @@ const About = () => {
                     className="border p-2 mt-1 w-full"
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium">Facebook</label>
                   <input
                     type="url"
@@ -237,14 +237,14 @@ const About = () => {
                   />
                 </div>
               </div>
-              <div className="mt-4 flex gap-4">
+              <div className="mt-4">
                 <button type="submit" className="bg-green-500 text-white py-2 px-4 rounded">
                   {isEditing ? 'Update' : 'Submit'}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancelForm}
-                  className="bg-gray-500 text-white py-2 px-4 rounded"
+                  className="ml-4 bg-gray-500 text-white py-2 px-4 rounded"
                 >
                   Cancel
                 </button>
@@ -254,81 +254,80 @@ const About = () => {
         </div>
       )}
 
-      {/* Display Bio Data in Table Format */}
       <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-gray-200 p-2 text-left">Name</th>
-            <th className="border border-gray-200 p-2 text-left">Roles</th>
-            <th className="border border-gray-200 p-2 text-left">Description</th>
-            <th className="border border-gray-200 p-2 text-left">GitHub</th>
-            <th className="border border-gray-200 p-2 text-left">Resume</th>
-            <th className="border border-gray-200 p-2 text-left">LinkedIn</th>
-            <th className="border border-gray-200 p-2 text-left">Twitter</th>
-            <th className="border border-gray-200 p-2 text-left">Instagram</th>
-            <th className="border border-gray-200 p-2 text-left">Facebook</th>
-            <th className="border border-gray-200 p-2 text-left">Actions</th>
+            <th className="p-2">Image</th>
+            <th className="p-2">Name</th>
+            <th className="p-2">Roles</th>
+            <th className="p-2">Description</th>
+            <th className="p-2">GitHub</th>
+            <th className="p-2">LinkedIn</th>
+            <th className="p-2">Twitter</th>
+            <th className="p-2">Instagram</th>
+            <th className="p-2">Facebook</th>
+            <th className="p-2">Resume</th>
+            <th className="p-2">Actions</th>
           </tr>
         </thead>
         <tbody>
           {bioData.map((bio) => (
-            <tr key={bio.id} className="hover:bg-gray-50">
-              <td className="border border-gray-200 p-2">{bio.name}</td>
-              <td className="border border-gray-200 p-2">{Array.isArray(bio.roles) ? bio.roles.join(', ') : bio.roles}</td>
-              <td className="border border-gray-200 p-2">{bio.description}</td>
-              <td className="border border-gray-200 p-2">
-                <a href={bio.github} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                  View
-                </a>
+            <tr key={bio.id}>
+              <td className="p-2">
+                {bio.image && <img src={bio.image} alt="Profile" className="w-12 h-12 rounded-full" />}
               </td>
-              <td className="border border-gray-200 p-2">
-                {bio.resume && (
-                  <a href={bio.resume} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                    Download
+              <td className="p-2">{bio.name}</td>
+              <td className="p-2">{Array.isArray(bio.roles) ? bio.roles.join(', ') : bio.roles}</td>
+              <td className="p-2">{bio.description}</td>
+              <td className="p-2">
+                {bio.github && (
+                  <a href={bio.github} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                    View
                   </a>
                 )}
               </td>
-              <td className="border border-gray-200 p-2">
-                <a href={bio.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-500">
-                  View
-                </a>
+              <td className="p-2">
+                {bio.linkedin && (
+                  <a href={bio.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                    View
+                  </a>
+                )}
               </td>
-              <td className="border border-gray-200 p-2">
+              <td className="p-2">
                 {bio.twitter && (
                   <a href={bio.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-500">
                     View
                   </a>
                 )}
               </td>
-              <td className="border border-gray-200 p-2">
+              <td className="p-2">
                 {bio.insta && (
                   <a href={bio.insta} target="_blank" rel="noopener noreferrer" className="text-blue-500">
                     View
                   </a>
                 )}
               </td>
-              <td className="border border-gray-200 p-2">
+              <td className="p-2">
                 {bio.facebook && (
                   <a href={bio.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-500">
                     View
                   </a>
                 )}
               </td>
-              <td className="border border-gray-200 p-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEditBio(bio)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    <FaEdit size={20} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(bio.id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    <FaTrashAlt size={20} />
-                  </button>
-                </div>
+              <td className="p-2">
+                {bio.resume && (
+                  <a href={bio.resume} target="_blank" rel="noopener noreferrer" className="text-blue-500">
+                    View
+                  </a>
+                )}
+              </td>
+              <td className="p-2">
+                <button onClick={() => handleEditBio(bio)} className="mr-2 text-blue-500">
+                  <FaEdit />
+                </button>
+                <button onClick={() => handleDelete(bio.id)} className="text-red-500">
+                  <FaTrashAlt />
+                </button>
               </td>
             </tr>
           ))}

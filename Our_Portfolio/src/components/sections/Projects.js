@@ -55,7 +55,7 @@ const ToggleButtonGroup = styled.div`
   color: ${({ theme }) => theme.primary};
   font-size: 16px;
   border-radius: 12px;
-font-weight 500;
+font-weight 5000;
 margin: 22px 0;
 @media (max-width: 768px){
     font-size: 12px;

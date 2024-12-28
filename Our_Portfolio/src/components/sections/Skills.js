@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { skills } from "../../data/constants";
 import { Tilt } from "react-tilt";
 
+// Styled components (same as your earlier code)
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  position: rlative;
+  position: relative;
   z-index: 1;
   align-items: center;
 `;
@@ -24,18 +24,19 @@ const Wrapper = styled.div`
     flex-direction: column;
   }
 `;
+
 const Title = styled.div`
   font-size: 52px;
   text-align: center;
   font-weight: 600;
   margin-top: 20px;
-
   color: ${({ theme }) => theme.text_primary};
   @media (max-width: 768px) {
     margin-top: 12px;
     font-size: 32px;
   }
 `;
+
 const Desc = styled.div`
   font-size: 18px;
   text-align: center;
@@ -67,7 +68,6 @@ const Skill = styled.div`
     max-width: 400px;
     padding: 10px 36px;
   }
-
   @media (max-width: 500px) {
     max-width: 330px;
     padding: 10px 36px;
@@ -89,6 +89,7 @@ const SkillList = styled.div`
   gap: 12px;
   margin-bottom: 20px;
 `;
+
 const SkillItem = styled.div`
   font-size: 16px;
   font-weight: 400;
@@ -100,7 +101,6 @@ const SkillItem = styled.div`
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   @media (max-width: 768px) {
     font-size: 14px;
     padding: 8px 12px;
@@ -110,12 +110,37 @@ const SkillItem = styled.div`
     padding: 6px 12px;
   }
 `;
+
 const SkillImage = styled.img`
   width: 24px;
   height: 24px;
 `;
 
 const Skills = () => {
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/skills`);
+        if (!response.ok) throw new Error("Failed to fetch skills");
+        const data = await response.json();
+        setSkills(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSkills();
+  }, []);
+
+  if (loading) return <p>Loading skills...</p>;
+  if (error) return <p>Error loading skills: {error}</p>;
+
   return (
     <Container id="Skills">
       <Wrapper>
@@ -125,22 +150,20 @@ const Skills = () => {
             marginBottom: "40px",
           }}
         >
-          Here are some of my skills on which I have been working on for the
-          past 3 years.
+          Here are some of my skills on which I have been working for the past 3
+          years.
         </Desc>
 
         <SkillsContainer>
-          {skills.map((skill, index) => (
-            <Tilt>
-              <Skill key={`skill-${index}`}>
+          {skills.map((skill) => (
+            <Tilt key={skill.id}>
+              <Skill>
                 <SkillTitle>{skill.title}</SkillTitle>
                 <SkillList>
-                  {skill.skills.map((item, index_x) => (
-                    <SkillItem key={`skill-x-${index_x}`}>
-                      <SkillImage src={item.image} />
-                      {item.name}
-                    </SkillItem>
-                  ))}
+                  <SkillItem>
+                    <SkillImage src={skill.image} alt={skill.name} />
+                    {skill.name}
+                  </SkillItem>
                 </SkillList>
               </Skill>
             </Tilt>
