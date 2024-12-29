@@ -8,6 +8,7 @@ const sequelize = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const aboutRoutes = require('./routes/aboutRoutes');
 const educationRoutes = require('./routes/educationRoutes');
+const experienceRoutes=require('./routes/experienceRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const upload = require('./middlewares/upload');
 
@@ -97,6 +98,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/about', aboutRoutes);
 app.use('/api/education', educationRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use("/api/experiences", experienceRoutes);
 
 // Global error handling
 app.use((err, req, res, next) => {

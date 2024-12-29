@@ -28,14 +28,13 @@ const ExperienceFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing
     isVisible && (
       <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-          {/* Close Icon */}
           <button
             onClick={onClose}
             className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
           >
             <FaTimes size={20} />
           </button>
-          
+
           <h3 className="text-lg font-semibold mb-4">{isEditing ? "Edit Experience" : "Add New Experience"}</h3>
           <form onSubmit={handleSubmit}>
             <div className="overflow-y-auto max-h-96">
@@ -153,7 +152,6 @@ const Experience = () => {
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-  // Fetch experiences data from API
   useEffect(() => {
     fetchExperiences();
   }, []);
@@ -203,8 +201,6 @@ const Experience = () => {
 
   const handleSubmit = async (experienceData) => {
     const formData = new FormData();
-
-    // Append experience data to FormData
     Object.keys(experienceData).forEach((key) => {
       formData.append(key, experienceData[key]);
     });
@@ -212,7 +208,6 @@ const Experience = () => {
     try {
       let response;
       if (experienceData.id) {
-        // Update existing experience
         response = await axios.put(
           `${API_BASE_URL}/experiences/${experienceData.id}`,
           formData
@@ -225,7 +220,6 @@ const Experience = () => {
           )
         );
       } else {
-        // Add new experience
         response = await axios.post(`${API_BASE_URL}/experiences`, formData);
         setExperiences((prevExperiences) => [...prevExperiences, response.data]);
       }
@@ -248,13 +242,14 @@ const Experience = () => {
         </button>
       </div>
 
-      {/* Experience Table */}
       <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
         <thead>
           <tr className="bg-gray-100">
             <th className="border border-gray-200 p-2 text-left">Role</th>
             <th className="border border-gray-200 p-2 text-left">Company</th>
             <th className="border border-gray-200 p-2 text-left">Date</th>
+            <th className="border border-gray-200 p-2 text-left">Image</th>
+            <th className="border border-gray-200 p-2 text-left">Document</th>
             <th className="border border-gray-200 p-2 text-left">Actions</th>
           </tr>
         </thead>
@@ -264,6 +259,27 @@ const Experience = () => {
               <td className="border border-gray-200 p-2">{experienceItem.role}</td>
               <td className="border border-gray-200 p-2">{experienceItem.company}</td>
               <td className="border border-gray-200 p-2">{experienceItem.date}</td>
+              <td className="border border-gray-200 p-2">
+                {experienceItem.img && (
+                  <img
+                    src={`${API_BASE_URL}/${experienceItem.img}`}
+                    alt="Experience"
+                    className="h-12 w-auto rounded border"
+                  />
+                )}
+              </td>
+              <td className="border border-gray-200 p-2">
+                {experienceItem.doc && (
+                  <a
+                    href={`${API_BASE_URL}/${experienceItem.doc}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    View Document
+                  </a>
+                )}
+              </td>
               <td className="border border-gray-200 p-2">
                 <div className="flex items-center gap-2">
                   <button
@@ -285,7 +301,6 @@ const Experience = () => {
         </tbody>
       </table>
 
-      {/* Modal for Adding or Editing Experience */}
       <ExperienceFormModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
