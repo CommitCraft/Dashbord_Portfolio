@@ -262,7 +262,7 @@ const Experience = () => {
               <td className="border border-gray-200 p-2">
                 {experienceItem.img && (
                   <img
-                    src={`${API_BASE_URL}/${experienceItem.img}`}
+                    src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${experienceItem.img}`}
                     alt="Experience"
                     className="h-12 w-auto rounded border"
                   />
@@ -271,7 +271,7 @@ const Experience = () => {
               <td className="border border-gray-200 p-2">
                 {experienceItem.doc && (
                   <a
-                    href={`${API_BASE_URL}/${experienceItem.doc}`}
+                    href={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${experienceItem.doc}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline"
