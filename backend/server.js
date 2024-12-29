@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const aboutRoutes = require('./routes/aboutRoutes');
 const educationRoutes = require('./routes/educationRoutes');
 const experienceRoutes=require('./routes/experienceRoutes');
+const skillRoutes=require('./routes/skillRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const upload = require('./middlewares/upload');
 
@@ -99,6 +100,7 @@ app.use('/api/about', aboutRoutes);
 app.use('/api/education', educationRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use("/api/experiences", experienceRoutes);
+app.use('/api/skills', skillRoutes);
 
 // Global error handling
 app.use((err, req, res, next) => {

@@ -35,7 +35,7 @@ const SkillFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing }) =
               <input
                 type="text"
                 name="title"
-                value={localFormData.title}
+                value={localFormData.title || ''}
                 onChange={handleChange}
                 className="border p-2 mt-1 w-full"
                 required
@@ -46,7 +46,7 @@ const SkillFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing }) =
               <input
                 type="text"
                 name="name"
-                value={localFormData.name}
+                value={localFormData.name || ''}
                 onChange={handleChange}
                 className="border p-2 mt-1 w-full"
                 required
@@ -94,9 +94,8 @@ const Skills = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  // Fetch skills from API
   useEffect(() => {
     fetchSkills();
   }, []);
@@ -136,36 +135,39 @@ const Skills = () => {
   const handleSubmit = async (skillData) => {
     const formData = new FormData();
 
-    // Append the new skill data to FormData, including the image (if provided)
+    // Append fields to FormData
     Object.keys(skillData).forEach((key) => {
-      if (key === 'image' && !skillData.image && skillData.id) {
-        // If no new image is provided and it's an edit, keep the old image.
-        formData.append(key, null); // Keep existing image when updating
-      } else {
+      if (key === 'image' && skillData.image && typeof skillData.image !== 'string') {
+        formData.append(key, skillData.image); // Append file only if it's a File object
+      } else if (key !== 'image') {
         formData.append(key, skillData[key]);
       }
     });
 
+    // Debugging FormData
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
     try {
       let response;
-      const updateUrl = `${API_BASE_URL}/skills/${skillData.id}`;
       if (skillData.id) {
         // Update existing skill
-        console.log("Updating skill at URL:", updateUrl); // Debug log
-        response = await axios.put(updateUrl, formData);
+        response = await axios.put(`${API_BASE_URL}/skills/${skillData.id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         setSkills((prevSkills) =>
-          prevSkills.map((skill) =>
-            skill.id === skillData.id ? { ...skill, ...skillData } : skill
-          )
+          prevSkills.map((skill) => (skill.id === skillData.id ? response.data : skill))
         );
       } else {
         // Add new skill
-        console.log("Adding new skill at URL:", `${API_BASE_URL}/skills`); // Debug log
-        response = await axios.post(`${API_BASE_URL}/skills`, formData);
+        response = await axios.post(`${API_BASE_URL}/skills`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         setSkills((prevSkills) => [...prevSkills, response.data]);
       }
     } catch (error) {
-      console.error('Error submitting skill:', error);
+      console.error('Error submitting skill:', error.response?.data || error.message);
     }
   };
 
@@ -183,7 +185,6 @@ const Skills = () => {
         </button>
       </div>
 
-      {/* Skills Table */}
       <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
         <thead>
           <tr className="bg-gray-100">
@@ -199,7 +200,15 @@ const Skills = () => {
               <td className="border border-gray-200 p-2">{skill.title}</td>
               <td className="border border-gray-200 p-2">{skill.name}</td>
               <td className="border border-gray-200 p-2">
-                {skill.image && <img src={skill.image} alt={skill.name} className="w-12 h-12 object-cover" />}
+                {skill.image ? (
+                  <img
+                    src={`${API_BASE_URL.replace('/api', '')}${skill.image}`}
+                    alt={skill.name}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                ) : (
+                  <span>No Image</span>
+                )}
               </td>
               <td className="border border-gray-200 p-2">
                 <div className="flex items-center gap-2">
@@ -222,7 +231,6 @@ const Skills = () => {
         </tbody>
       </table>
 
-      {/* Modal for Adding or Editing Skill */}
       <SkillFormModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
