@@ -1,6 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
+const VALID_CATEGORIES = ['ALL', 'Full-Stack', 'Frontend', "Mini-Project's", "Android App's"];
+
 const Project = sequelize.define('Project', {
   id: {
     type: DataTypes.INTEGER,
@@ -12,7 +14,7 @@ const Project = sequelize.define('Project', {
     allowNull: false,
   },
   date: {
-    type: DataTypes.STRING,
+    type: DataTypes.DATE,
     allowNull: false,
   },
   description: {
@@ -30,6 +32,12 @@ const Project = sequelize.define('Project', {
   category: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      isIn: {
+        args: [VALID_CATEGORIES],
+        msg: `Category must be one of: ${VALID_CATEGORIES.join(', ')}`,
+      },
+    },
   },
   github: {
     type: DataTypes.STRING,
@@ -40,8 +48,5 @@ const Project = sequelize.define('Project', {
     allowNull: true,
   },
 });
-
-sequelize.sync({ force: false }) // `force: false` prevents table overwrites
-  .then(() => console.log('Project table created'));
 
 module.exports = Project;
