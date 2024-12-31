@@ -1,5 +1,6 @@
 const Experience = require("../models/Experience");
 const path = require("path");
+const fs = require("fs");
 
 // Get all experiences
 exports.getAllExperiences = async (req, res) => {
@@ -7,6 +8,7 @@ exports.getAllExperiences = async (req, res) => {
     const experiences = await Experience.findAll();
     res.status(200).json(experiences);
   } catch (error) {
+    console.error("Error fetching experiences:", error);
     res.status(500).json({ error: "Failed to fetch experiences." });
   }
 };
@@ -23,6 +25,7 @@ exports.getExperienceById = async (req, res) => {
 
     res.status(200).json(experience);
   } catch (error) {
+    console.error("Error fetching experience:", error);
     res.status(500).json({ error: "Failed to fetch experience." });
   }
 };
@@ -31,7 +34,18 @@ exports.getExperienceById = async (req, res) => {
 exports.createExperience = async (req, res) => {
   try {
     const { role, company, date, desc, skills, doc } = req.body;
-    const img = req.file ? `/uploads/${req.file.filename}` : null; // Save the uploaded image path
+    const img = req.file ? `/uploads/${req.file.filename}` : '/uploads/default-placeholder.png'; // Use default image if none uploaded
+
+    if (!role || !company || !date || !desc || !skills) {
+      return res.status(400).json({ error: "All fields are required." });
+    }
+
+    // Handle skills input
+    const parsedSkills = Array.isArray(skills)
+      ? skills
+      : (skills && typeof skills === "string")
+      ? skills.split(",").map((skill) => skill.trim())
+      : [];
 
     const newExperience = await Experience.create({
       img,
@@ -39,13 +53,13 @@ exports.createExperience = async (req, res) => {
       company,
       date,
       desc,
-      skills: JSON.parse(skills), // Parse JSON string to array
+      skills: parsedSkills,
       doc,
     });
 
     res.status(201).json(newExperience);
   } catch (error) {
-    console.error(error);
+    console.error("Error creating experience:", error);
     res.status(500).json({ error: "Failed to create experience." });
   }
 };
@@ -63,19 +77,34 @@ exports.updateExperience = async (req, res) => {
 
     const img = req.file ? `/uploads/${req.file.filename}` : experience.img;
 
+    if (req.file && experience.img && experience.img !== '/uploads/default-placeholder.png') {
+      // Delete old image if a new one is uploaded and it's not the default placeholder
+      const oldImagePath = path.join(__dirname, "..", experience.img);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    // Handle skills input
+    const parsedSkills = Array.isArray(skills)
+      ? skills
+      : (skills && typeof skills === "string")
+      ? skills.split(",").map((skill) => skill.trim())
+      : [];
+
     await experience.update({
       img,
       role,
       company,
       date,
       desc,
-      skills: JSON.parse(skills),
+      skills: parsedSkills,
       doc,
     });
 
     res.status(200).json(experience);
   } catch (error) {
-    console.error(error);
+    console.error("Error updating experience:", error);
     res.status(500).json({ error: "Failed to update experience." });
   }
 };
@@ -90,9 +119,18 @@ exports.deleteExperience = async (req, res) => {
       return res.status(404).json({ error: "Experience not found." });
     }
 
+    if (experience.img && experience.img !== '/uploads/default-placeholder.png') {
+      // Delete associated image file
+      const imagePath = path.join(__dirname, "..", experience.img);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
     await experience.destroy();
     res.status(200).json({ message: "Experience deleted successfully." });
   } catch (error) {
+    console.error("Error deleting experience:", error);
     res.status(500).json({ error: "Failed to delete experience." });
   }
 };

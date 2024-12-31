@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrashAlt, FaPlus, FaTimes } from "react-icons/fa";
 import axios from "axios";
 
-// Modal for Adding or Editing Experience
+// Modal Component for Adding or Editing Experience
 const ExperienceFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing }) => {
   const [localFormData, setLocalFormData] = useState(formData);
 
@@ -135,6 +135,7 @@ const ExperienceFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing
   );
 };
 
+// Main Experience Component
 const Experience = () => {
   const [experiences, setExperiences] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -262,7 +263,7 @@ const Experience = () => {
               <td className="border border-gray-200 p-2">
                 {experienceItem.img && (
                   <img
-                    src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${experienceItem.img}`}
+                    src={`${API_BASE_URL.replace('/api', '')}${experienceItem.img}`}
                     alt="Experience"
                     className="h-12 w-auto rounded border"
                   />
@@ -271,7 +272,7 @@ const Experience = () => {
               <td className="border border-gray-200 p-2">
                 {experienceItem.doc && (
                   <a
-                    href={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${experienceItem.doc}`}
+                    href={`${API_BASE_URL.replace('/api', '')}${experienceItem.doc}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline"
