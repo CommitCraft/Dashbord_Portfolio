@@ -9,10 +9,11 @@ const Projects = () => {
     title: "",
     description: "",
     github: "",
-    liveLink: "",
-    technologies: "",
+    webapp: "",
+    tags: "",
     category: "",
-    image: null,
+    iconImage: null,
+    images: [],
   });
   const [categories] = useState([
     "ALL",
@@ -51,11 +52,12 @@ const Projects = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files.length) {
       setFormData((prev) => ({
         ...prev,
-        image: e.target.files[0],
+        [name]: name === "images" ? Array.from(files) : files[0],
       }));
     }
   };
@@ -72,12 +74,18 @@ const Projects = () => {
       formDataToSend.append("title", formData.title);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("github", formData.github);
-      formDataToSend.append("webapp", formData.liveLink);
-      formDataToSend.append("technologies", formData.technologies);
+      formDataToSend.append("webapp", formData.webapp);
+      formDataToSend.append("tags", JSON.stringify(formData.tags.split(","))); // Convert tags to JSON array
       formDataToSend.append("category", formData.category);
 
-      if (formData.image instanceof File) {
-        formDataToSend.append("image", formData.image);
+      if (formData.iconImage instanceof File) {
+        formDataToSend.append("iconImage", formData.iconImage);
+      }
+
+      if (formData.images.length) {
+        formData.images.forEach((image) => {
+          formDataToSend.append("images", image);
+        });
       }
 
       if (isEditing) {
@@ -114,11 +122,21 @@ const Projects = () => {
       title: "",
       description: "",
       github: "",
-      liveLink: "",
-      technologies: "",
+      webapp: "",
+      tags: "",
       category: "",
-      image: null,
+      iconImage: null,
+      images: [],
     });
+  };
+
+  const handleEdit = (project) => {
+    setFormData({
+      ...project,
+      tags: project.tags ? project.tags.join(", ") : "", // Convert tags array to comma-separated string
+    });
+    setIsEditing(true);
+    setIsFormVisible(true);
   };
 
   const handleDelete = async (id) => {
@@ -201,15 +219,14 @@ const Projects = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">
-                    Technologies
-                  </label>
+                  <label className="block text-sm font-medium">Tags</label>
                   <input
                     type="text"
-                    name="technologies"
-                    value={formData.technologies}
+                    name="tags"
+                    value={formData.tags}
                     onChange={handleChange}
                     className="border p-2 mt-1 w-full"
+                    placeholder="Comma-separated tags"
                   />
                 </div>
                 <div className="col-span-2">
@@ -238,40 +255,34 @@ const Projects = () => {
                   <label className="block text-sm font-medium">Live Link</label>
                   <input
                     type="url"
-                    name="liveLink"
-                    value={formData.liveLink}
+                    name="webapp"
+                    value={formData.webapp}
                     onChange={handleChange}
                     className="border p-2 mt-1 w-full"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium">Image</label>
+                <div>
+                  <label className="block text-sm font-medium">Icon Image</label>
                   <input
                     type="file"
-                    name="image"
+                    name="iconImage"
                     accept="image/*"
-                    onChange={handleImageChange}
+                    onChange={handleFileChange}
+                    className="border p-2 mt-1 w-full"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium">Images</label>
+                  <input
+                    type="file"
+                    name="images"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileChange}
                     className="border p-2 mt-1 w-full"
                   />
                 </div>
               </div>
-              {formData.image && (
-                <div className="mt-4">
-                  <p>Preview:</p>
-                  <img
-                    src={
-                      typeof formData.image === "string"
-                        ? `${import.meta.env.VITE_API_BASE_URL.replace(
-                            /\/api$/,
-                            ""
-                          )}/${formData.image}`
-                        : URL.createObjectURL(formData.image)
-                    }
-                    alt="Preview"
-                    className="w-32 h-32 object-cover"
-                  />
-                </div>
-              )}
               <div className="mt-4 flex gap-4">
                 <button
                   type="submit"
@@ -298,10 +309,10 @@ const Projects = () => {
         <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border border-gray-200 p-2">Image</th>
+              <th className="border border-gray-200 p-2">Icon</th>
               <th className="border border-gray-200 p-2">Title</th>
               <th className="border border-gray-200 p-2">Category</th>
-              <th className="border border-gray-200 p-2">Description</th>
+              <th className="border border-gray-200 p-2">Tags</th>
               <th className="border border-gray-200 p-2">GitHub</th>
               <th className="border border-gray-200 p-2">Live Link</th>
               <th className="border border-gray-200 p-2">Actions</th>
@@ -313,11 +324,11 @@ const Projects = () => {
                 <td className="border border-gray-200 p-2">
                   <img
                     src={
-                      project.image
+                      project.iconImage
                         ? `${import.meta.env.VITE_API_BASE_URL.replace(
                             /\/api$/,
                             ""
-                          )}/${project.image}`
+                          )}/${project.iconImage}`
                         : "https://via.placeholder.com/150"
                     }
                     alt={project.title}
@@ -329,7 +340,7 @@ const Projects = () => {
                   {project.category}
                 </td>
                 <td className="border border-gray-200 p-2">
-                  {project.description}
+                  {project.tags ? project.tags.join(", ") : "N/A"}
                 </td>
                 <td className="border border-gray-200 p-2">
                   {project.github && (
@@ -359,11 +370,7 @@ const Projects = () => {
                 </td>
                 <td className="border border-gray-200 p-2">
                   <button
-                    onClick={() => {
-                      setFormData(project);
-                      setIsEditing(true);
-                      setIsFormVisible(true);
-                    }}
+                    onClick={() => handleEdit(project)}
                     className="text-blue-500 hover:text-blue-700"
                   >
                     <FaEdit />

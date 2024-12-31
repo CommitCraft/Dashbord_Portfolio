@@ -13,16 +13,16 @@ const Project = sequelize.define('Project', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  date: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  },
   description: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-  image: {
-    type: DataTypes.STRING,
+  images: {
+    type: DataTypes.JSON, // Array of image URLs
+    allowNull: true,
+  },
+  iconImage: {
+    type: DataTypes.STRING, // Single image URL
     allowNull: true,
   },
   tags: {
@@ -42,10 +42,16 @@ const Project = sequelize.define('Project', {
   github: {
     type: DataTypes.STRING,
     allowNull: true,
+    validate: {
+      isUrl: true,
+    },
   },
   webapp: {
     type: DataTypes.STRING,
     allowNull: true,
+    validate: {
+      isUrl: true,
+    },
   },
 });
 

@@ -1,23 +1,22 @@
 const Project = require('../models/Project');
-const path = require('path');
 
-// Create a new project
+// Create a new project with image uploads
 exports.createProject = async (req, res) => {
   try {
-    const { title, date, description, tags, category, github, webapp } = req.body;
+    const { title, description, tags, category, github, webapp } = req.body;
 
-    // Normalize the image path if an image is uploaded
-    const image = req.file ? req.file.path.replace(/\\/g, '/') : null;
+    const iconImage = req.files.iconImage ? req.files.iconImage[0].path : null;
+    const images = req.files.images ? req.files.images.map((file) => file.path) : [];
 
     const project = await Project.create({
       title,
-      date,
       description,
-      tags: tags ? JSON.parse(tags) : null, // Parse tags if provided
+      images,
+      iconImage,
+      tags: tags ? JSON.parse(tags) : null, // Parse JSON string if necessary
       category,
       github,
       webapp,
-      image,
     });
 
     res.status(201).json({ success: true, data: project });
@@ -39,12 +38,11 @@ exports.getAllProjects = async (req, res) => {
 // Get a project by ID
 exports.getProjectById = async (req, res) => {
   try {
-    const project = await Project.findByPk(req.params.id);
-
+    const { id } = req.params;
+    const project = await Project.findByPk(id);
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
-
     res.status(200).json({ success: true, data: project });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -54,26 +52,26 @@ exports.getProjectById = async (req, res) => {
 // Update a project
 exports.updateProject = async (req, res) => {
   try {
-    const { title, date, description, tags, category, github, webapp } = req.body;
+    const { id } = req.params;
+    const { title, description, tags, category, github, webapp } = req.body;
 
-    // Normalize the image path if an image is uploaded
-    const image = req.file ? req.file.path.replace(/\\/g, '/') : null;
+    const iconImage = req.files.iconImage ? req.files.iconImage[0].path : null;
+    const images = req.files.images ? req.files.images.map((file) => file.path) : [];
 
-    const project = await Project.findByPk(req.params.id);
-
+    const project = await Project.findByPk(id);
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
     await project.update({
       title,
-      date,
       description,
-      tags: tags ? JSON.parse(tags) : project.tags, // Retain old tags if not provided
+      images: images.length ? images : project.images,
+      iconImage: iconImage || project.iconImage,
+      tags: tags ? JSON.parse(tags) : project.tags,
       category,
       github,
       webapp,
-      image: image || project.image, // Retain old image if no new image is uploaded
     });
 
     res.status(200).json({ success: true, data: project });
@@ -85,14 +83,12 @@ exports.updateProject = async (req, res) => {
 // Delete a project
 exports.deleteProject = async (req, res) => {
   try {
-    const project = await Project.findByPk(req.params.id);
-
+    const { id } = req.params;
+    const project = await Project.findByPk(id);
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
-
     await project.destroy();
-
     res.status(200).json({ success: true, message: 'Project deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

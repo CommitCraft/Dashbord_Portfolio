@@ -4,10 +4,26 @@ const upload = require('../middlewares/upload');
 
 const router = express.Router();
 
-router.post('/', upload.single('image'), projectController.createProject);
+// Route to create a new project with file uploads
+router.post(
+  '/',
+  upload.fields([
+    { name: 'iconImage', maxCount: 1 }, // Single icon image
+    { name: 'images', maxCount: 5 },   // Up to 5 images
+  ]),
+  projectController.createProject
+);
+
 router.get('/', projectController.getAllProjects);
 router.get('/:id', projectController.getProjectById);
-router.put('/:id', upload.single('image'), projectController.updateProject);
+router.put(
+  '/:id',
+  upload.fields([
+    { name: 'iconImage', maxCount: 1 },
+    { name: 'images', maxCount: 5 },
+  ]),
+  projectController.updateProject
+);
 router.delete('/:id', projectController.deleteProject);
 
 module.exports = router;
