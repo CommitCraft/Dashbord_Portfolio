@@ -1,16 +1,13 @@
 const express = require('express');
-const router = express.Router();
-const aboutController = require('../controllers/aboutController');
+const bioController = require('../controllers/aboutController');
 const upload = require('../middlewares/upload');
 
-// Routes
-router.get('/', aboutController.getAllBios);
-router.get('/:id', aboutController.getBioById);
+const router = express.Router();
 
-// Accept `resume` and `image` files
-router.post('/', upload.fields([{ name: 'resume' }, { name: 'image' }]), aboutController.createBio);
-router.put('/:id', upload.fields([{ name: 'resume' }, { name: 'image' }]), aboutController.updateBio);
-
-router.delete('/:id', aboutController.deleteBio);
+router.get('/', bioController.getAllBios);
+router.get('/:id', bioController.getBioById);
+router.post('/', upload.single('image'), bioController.createBio);
+router.put('/:id', upload.single('image'), bioController.updateBio);
+router.delete('/:id', bioController.deleteBio);
 
 module.exports = router;

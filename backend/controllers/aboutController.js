@@ -1,112 +1,87 @@
-const About = require('../models/About');
+const Bio = require('../models/About');
 
-// Get all bios
+// Get all profiles
 exports.getAllBios = async (req, res) => {
   try {
-    const bios = await About.findAll();
+    const bios = await Bio.findAll();
     res.status(200).json(bios);
-  } catch (error) {
-    console.error('Error fetching bios:', error);
-    res.status(500).json({ error: 'Failed to fetch bios' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Get bio by ID
+// Get a single profile
 exports.getBioById = async (req, res) => {
   try {
-    const bio = await About.findByPk(req.params.id);
-    if (!bio) {
-      return res.status(404).json({ error: 'Bio not found' });
+    const bio = await Bio.findByPk(req.params.id);
+    if (bio) {
+      res.status(200).json(bio);
+    } else {
+      res.status(404).json({ message: 'Bio not found' });
     }
-    res.status(200).json(bio);
-  } catch (error) {
-    console.error('Error fetching bio:', error);
-    res.status(500).json({ error: 'Failed to fetch bio' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Create bio
+// Create a new profile
 exports.createBio = async (req, res) => {
   try {
     const { name, roles, description, github, linkedin, twitter, insta, facebook } = req.body;
-    const resume = req.files.resume ? `/uploads/${req.files.resume[0].filename}` : null;
-    const image = req.files.image ? `/uploads/${req.files.image[0].filename}` : null;
+    const image = req.file ? req.file.path : null;
 
-    if (!name || !roles || !description || !github || !linkedin) {
-      return res.status(400).json({ error: 'Required fields are missing' });
-    }
+    const parsedRoles = typeof roles === 'string' ? JSON.parse(roles) : roles;
 
-    const rolesArray = JSON.parse(roles); // Convert roles JSON string to array
-
-    const newBio = await About.create({
+    const bio = await Bio.create({
       name,
-      roles: rolesArray,
+      roles: parsedRoles,
       description,
       github,
       linkedin,
       twitter,
       insta,
       facebook,
-      resume,
       image,
     });
-
-    res.status(201).json(newBio);
-  } catch (error) {
-    console.error('Error creating bio:', error);
-    res.status(500).json({ error: 'Failed to create bio' });
+    res.status(201).json(bio);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Update bio
+// Update a profile
 exports.updateBio = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, roles, description, github, linkedin, twitter, insta, facebook } = req.body;
-    const resume = req.files.resume ? `/uploads/${req.files.resume[0].filename}` : null;
-    const image = req.files.image ? `/uploads/${req.files.image[0].filename}` : null;
+    const bio = await Bio.findByPk(req.params.id);
+    if (bio) {
+      const updatedData = { ...req.body };
+      if (req.file) updatedData.image = req.file.path;
 
-    const bio = await About.findByPk(id);
-    if (!bio) {
-      return res.status(404).json({ error: 'Bio not found' });
+      if (updatedData.roles && typeof updatedData.roles === 'string') {
+        updatedData.roles = JSON.parse(updatedData.roles);
+      }
+
+      await bio.update(updatedData);
+      res.status(200).json(bio);
+    } else {
+      res.status(404).json({ message: 'Bio not found' });
     }
-
-    const rolesArray = roles ? JSON.parse(roles) : bio.roles;
-
-    await bio.update({
-      name,
-      roles: rolesArray,
-      description,
-      github,
-      linkedin,
-      twitter,
-      insta,
-      facebook,
-      resume: resume || bio.resume,
-      image: image || bio.image,
-    });
-
-    res.status(200).json(bio);
-  } catch (error) {
-    console.error('Error updating bio:', error);
-    res.status(500).json({ error: 'Failed to update bio' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Delete bio
+// Delete a profile
 exports.deleteBio = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const bio = await About.findByPk(id);
-    if (!bio) {
-      return res.status(404).json({ error: 'Bio not found' });
+    const bio = await Bio.findByPk(req.params.id);
+    if (bio) {
+      await bio.destroy();
+      res.status(200).json({ message: 'Bio deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Bio not found' });
     }
-
-    await bio.destroy();
-    res.status(204).send();
-  } catch (error) {
-    console.error('Error deleting bio:', error);
-    res.status(500).json({ error: 'Failed to delete bio' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

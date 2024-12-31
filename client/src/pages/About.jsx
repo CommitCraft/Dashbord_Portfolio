@@ -21,10 +21,16 @@ const About = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_BASE_URL}/about`)
-      .then((response) => setBioData(response.data))
-      .catch((error) => console.error('Error fetching bio data:', error));
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/about`);
+        setBioData(response.data);
+      } catch (error) {
+        console.error('Error fetching bio data:', error);
+        alert('Failed to fetch bio data. Please try again later.');
+      }
+    };
+    fetchData();
   }, []);
 
   const handleChange = (e) => {
@@ -35,38 +41,53 @@ const About = () => {
     }));
   };
 
+  const formatUrl = (baseUrl, path) => {
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+    if (path.startsWith('/')) path = path.slice(1);
+    return `${baseUrl}${path}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.name || !formData.roles || !formData.description) {
+      alert('Please fill all required fields!');
+      return;
+    }
+
     const formDataToSubmit = new FormData();
     Object.keys(formData).forEach((key) => {
-      if (formData[key]) {
-        formDataToSubmit.append(key, formData[key]);
+      if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
+        if (key === 'roles') {
+          formDataToSubmit.append(key, JSON.stringify(formData[key].split(',').map(role => role.trim())));
+        } else {
+          formDataToSubmit.append(key, formData[key]);
+        }
       }
     });
 
     try {
-      const response = isEditing
-        ? await axios.put(
-            `${import.meta.env.VITE_API_BASE_URL}/about/${formData.id}`,
-            formDataToSubmit,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
-          )
-        : await axios.post(`${import.meta.env.VITE_API_BASE_URL}/about`, formDataToSubmit, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
+      const url = isEditing
+        ? `${import.meta.env.VITE_API_BASE_URL}/about/${formData.id}`
+        : `${import.meta.env.VITE_API_BASE_URL}/about`;
 
-      if (isEditing) {
-        setBioData((prev) =>
-          prev.map((bio) => (bio.id === formData.id ? response.data : bio))
-        );
-      } else {
-        setBioData((prev) => [...prev, response.data]);
-      }
+      const response = await axios({
+        method: isEditing ? 'put' : 'post',
+        url,
+        data: formDataToSubmit,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setBioData((prev) =>
+        isEditing
+          ? prev.map((bio) => (bio.id === formData.id ? response.data : bio))
+          : [...prev, response.data]
+      );
 
       resetForm();
       setIsFormVisible(false);
     } catch (error) {
-      console.error('Error saving bio data:', error);
+      console.error('Error saving bio data:', error.response || error.message);
       alert('Failed to save data. Please try again later.');
     }
   };
@@ -106,6 +127,7 @@ const About = () => {
   const handleEditBio = (bio) => {
     setFormData({
       ...bio,
+      roles: Array.isArray(bio.roles) ? bio.roles.join(', ') : bio.roles,
     });
     setIsEditing(true);
     setIsFormVisible(true);
@@ -132,7 +154,7 @@ const About = () => {
 
       {isFormVisible && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-1/2 max-w-4xl relative">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/2 max-w-4xl relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={handleCancelForm}
@@ -142,109 +164,38 @@ const About = () => {
             <h3 className="text-lg font-semibold mb-4">
               {isEditing ? 'Edit Bio' : 'Add New Bio'}
             </h3>
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Roles (comma-separated)</label>
-                  <input
-                    type="text"
-                    name="roles"
-                    value={formData.roles}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Description</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">GitHub</label>
-                  <input
-                    type="url"
-                    name="github"
-                    value={formData.github}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Instagram</label>
-                  <input
-                    type="url"
-                    name="insta"
-                    value={formData.insta}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Facebook</label>
-                  <input
-                    type="url"
-                    name="facebook"
-                    value={formData.facebook}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">LinkedIn</label>
-                  <input
-                    type="url"
-                    name="linkedin"
-                    value={formData.linkedin}
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Profile Image</label>
-                  <input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Resume</label>
-                  <input
-                    type="file"
-                    name="resume"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleChange}
-                    className="border p-2 mt-1 w-full"
-                  />
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InputField label="Name" name="name" value={formData.name} onChange={handleChange} />
+                <InputField
+                  label="Roles (comma-separated)"
+                  name="roles"
+                  value={formData.roles}
+                  onChange={handleChange}
+                />
+                <TextareaField
+                  label="Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                />
+                <InputField label="GitHub" name="github" value={formData.github} onChange={handleChange} />
+                <InputField label="Instagram" name="insta" value={formData.insta} onChange={handleChange} />
+                <InputField label="Facebook" name="facebook" value={formData.facebook} onChange={handleChange} />
+                <InputField label="LinkedIn" name="linkedin" value={formData.linkedin} onChange={handleChange} />
               </div>
-              <div className="mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FileField label="Profile Image" name="image" onChange={handleChange} accept="image/*" />
+                <FileField label="Resume" name="resume" onChange={handleChange} accept=".pdf,.doc,.docx" />
+              </div>
+              <div className="flex justify-end space-x-4">
                 <button type="submit" className="bg-green-500 text-white py-2 px-4 rounded">
                   {isEditing ? 'Update' : 'Submit'}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancelForm}
-                  className="ml-4 bg-gray-500 text-white py-2 px-4 rounded"
+                  className="bg-gray-500 text-white py-2 px-4 rounded"
                 >
                   Cancel
                 </button>
@@ -254,95 +205,104 @@ const About = () => {
         </div>
       )}
 
-      <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="p-3">Image</th>
-            <th className="p-3">Name</th>
-            <th className="p-3">Roles</th>
-            <th className="p-3">Description</th>
-            <th className="p-3">GitHub</th>
-            <th className="p-3">Instagram</th>
-            <th className="p-3">Facebook</th>
-            <th className="p-3">LinkedIn</th>
-            <th className="p-3">Resume</th>
-            <th className="p-3">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bioData.map((bio) => (
-            <tr key={bio.id} className="hover:bg-gray-50">
-              <td className="p-3">
-                {bio.image && (
-                  <img
-                    src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${bio.image}`}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full"
-                  />
-                )}
-              </td>
-              <td className="p-3">{bio.name}</td>
-              <td className="p-3">{bio.roles}</td>
-              <td className="p-3">{bio.description}</td>
-              <td className="p-3">
-                {bio.github && (
-                  <a href={bio.github} target="_blank" className="text-blue-600 underline">
-                    View
-                  </a>
-                )}
-              </td>
-              <td className="p-3">
-                {bio.insta && (
-                  <a href={bio.insta} target="_blank" className="text-blue-600 underline">
-                    View
-                  </a>
-                )}
-              </td>
-              <td className="p-3">
-                {bio.facebook && (
-                  <a href={bio.facebook} target="_blank" className="text-blue-600 underline">
-                    View
-                  </a>
-                )}
-              </td>
-              <td className="p-3">
-                {bio.linkedin && (
-                  <a href={bio.linkedin} target="_blank" className="text-green-600 underline">
-                    View
-                  </a>
-                )}
-              </td>
-              <td className="p-3">
-                {bio.resume && (
-                  <a
-                    href={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${bio.resume}`}
-                    target="_blank"
-                    className="text-red-600 underline"
-                  >
-                    Download
-                  </a>
-                )}
-              </td>
-              <td className="p-3">
-                <button
-                  onClick={() => handleEditBio(bio)}
-                  className="mr-2 text-blue-500 hover:text-blue-700"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(bio.id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <FaTrashAlt />
-                </button>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
+          <thead className="bg-gray-200">
+            <tr>
+              <th className="p-3 text-sm md:text-base">Image</th>
+              <th className="p-3 text-sm md:text-base">Name</th>
+              <th className="p-3 text-sm md:text-base">Roles</th>
+              <th className="p-3 text-sm md:text-base">Description</th>
+              <th className="p-3 text-sm md:text-base">GitHub</th>
+              <th className="p-3 text-sm md:text-base">Instagram</th>
+              <th className="p-3 text-sm md:text-base">Facebook</th>
+              <th className="p-3 text-sm md:text-base">LinkedIn</th>
+              <th className="p-3 text-sm md:text-base">Resume</th>
+              <th className="p-3 text-sm md:text-base">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {bioData.map((bio) => (
+              <tr key={bio.id} className="hover:bg-gray-50 text-xs md:text-sm">
+                <td className="p-3">
+                  {bio.image && (
+                    <img
+                      src={formatUrl(import.meta.env.VITE_API_BASE_URL.replace('/api', ''), bio.image)}
+                      alt="Profile"
+                      className="w-12 h-12 rounded-full"
+                    />
+                  )}
+                </td>
+                <td className="p-3">{bio.name}</td>
+                <td className="p-3">{bio.roles}</td>
+                <td className="p-3 max-w-xs overflow-y-auto">
+                  <div className="max-h-24 overflow-y-auto">{bio.description}</div>
+                </td>
+                <td className="p-3">
+                  {bio.github && <a href={bio.github} target="_blank" className="text-blue-600 underline">View</a>}
+                </td>
+                <td className="p-3">
+                  {bio.insta && <a href={bio.insta} target="_blank" className="text-blue-600 underline">View</a>}
+                </td>
+                <td className="p-3">
+                  {bio.facebook && <a href={bio.facebook} target="_blank" className="text-blue-600 underline">View</a>}
+                </td>
+                <td className="p-3">
+                  {bio.linkedin && <a href={bio.linkedin} target="_blank" className="text-green-600 underline">View</a>}
+                </td>
+                <td className="p-3">
+                  {bio.resume && (
+                    <a
+                      href={formatUrl(import.meta.env.VITE_API_BASE_URL.replace('/api', ''), bio.resume)}
+                      target="_blank"
+                      className="text-red-600 underline"
+                    >
+                      Download
+                    </a>
+                  )}
+                </td>
+                <td className="p-3 flex space-x-2">
+                  <button
+                    onClick={() => handleEditBio(bio)}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(bio.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <FaTrashAlt />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
+
+const InputField = ({ label, ...props }) => (
+  <div>
+    <label className="block text-sm font-medium">{label}</label>
+    <input {...props} className="border p-2 mt-1 w-full" />
+  </div>
+);
+
+const TextareaField = ({ label, ...props }) => (
+  <div>
+    <label className="block text-sm font-medium">{label}</label>
+    <textarea {...props} className="border p-2 mt-1 w-full" />
+  </div>
+);
+
+const FileField = ({ label, ...props }) => (
+  <div>
+    <label className="block text-sm font-medium">{label}</label>
+    <input type="file" {...props} className="border p-2 mt-1 w-full" />
+  </div>
+);
 
 export default About;
