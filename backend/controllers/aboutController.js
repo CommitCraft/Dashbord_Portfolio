@@ -1,40 +1,38 @@
-const Bio = require('../models/About');
+const About = require('../models/About');
+const path = require('path');
 
-// Get all profiles
-exports.getAllBios = async (req, res) => {
+// Get all about entries
+exports.getAllAbout = async (req, res) => {
   try {
-    const bios = await Bio.findAll();
-    res.status(200).json(bios);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const abouts = await About.findAll();
+    res.status(200).json(abouts);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch about entries.' });
   }
 };
 
-// Get a single profile
-exports.getBioById = async (req, res) => {
+// Get an about entry by ID
+exports.getAboutById = async (req, res) => {
   try {
-    const bio = await Bio.findByPk(req.params.id);
-    if (bio) {
-      res.status(200).json(bio);
-    } else {
-      res.status(404).json({ message: 'Bio not found' });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const about = await About.findByPk(req.params.id);
+    if (!about) return res.status(404).json({ error: 'About entry not found.' });
+    res.status(200).json(about);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch about entry.' });
   }
 };
 
-// Create a new profile
-exports.createBio = async (req, res) => {
+// Create a new about entry with image upload
+exports.createAbout = async (req, res) => {
   try {
     const { name, roles, description, github, linkedin, twitter, insta, facebook } = req.body;
+
+    // Get the uploaded image file path
     const image = req.file ? req.file.path : null;
 
-    const parsedRoles = typeof roles === 'string' ? JSON.parse(roles) : roles;
-
-    const bio = await Bio.create({
+    const newAbout = await About.create({
       name,
-      roles: parsedRoles,
+      roles: JSON.parse(roles),
       description,
       github,
       linkedin,
@@ -43,45 +41,51 @@ exports.createBio = async (req, res) => {
       facebook,
       image,
     });
-    res.status(201).json(bio);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    res.status(201).json(newAbout);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create about entry.' });
   }
 };
 
-// Update a profile
-exports.updateBio = async (req, res) => {
+// Update an about entry with image upload
+exports.updateAbout = async (req, res) => {
   try {
-    const bio = await Bio.findByPk(req.params.id);
-    if (bio) {
-      const updatedData = { ...req.body };
-      if (req.file) updatedData.image = req.file.path;
+    const about = await About.findByPk(req.params.id);
+    if (!about) return res.status(404).json({ error: 'About entry not found.' });
 
-      if (updatedData.roles && typeof updatedData.roles === 'string') {
-        updatedData.roles = JSON.parse(updatedData.roles);
-      }
+    const { name, roles, description, github, linkedin, twitter, insta, facebook } = req.body;
 
-      await bio.update(updatedData);
-      res.status(200).json(bio);
-    } else {
-      res.status(404).json({ message: 'Bio not found' });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    // Get the uploaded image file path (if provided)
+    const image = req.file ? req.file.path : about.image;
+
+    const updatedAbout = await about.update({
+      name,
+      roles: JSON.parse(roles),
+      description,
+      github,
+      linkedin,
+      twitter,
+      insta,
+      facebook,
+      image,
+    });
+
+    res.status(200).json(updatedAbout);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update about entry.' });
   }
 };
 
-// Delete a profile
-exports.deleteBio = async (req, res) => {
+// Delete an about entry
+exports.deleteAbout = async (req, res) => {
   try {
-    const bio = await Bio.findByPk(req.params.id);
-    if (bio) {
-      await bio.destroy();
-      res.status(200).json({ message: 'Bio deleted successfully' });
-    } else {
-      res.status(404).json({ message: 'Bio not found' });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const about = await About.findByPk(req.params.id);
+    if (!about) return res.status(404).json({ error: 'About entry not found.' });
+
+    await about.destroy();
+    res.status(200).json({ message: 'About entry deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete about entry.' });
   }
 };
