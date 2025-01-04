@@ -8,6 +8,7 @@ const Top = styled.div`
   max-width: 100%;
   gap: 12px;
 `;
+
 const Image = styled.img`
   height: 50px;
   border-radius: 10px;
@@ -16,30 +17,34 @@ const Image = styled.img`
     height: 40px;
   }
 `;
+
 const Body = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
 `;
+
 const School = styled.div`
   font-size: 18px;
-  font-weight: 600px;
+  font-weight: 600;
   color: ${({ theme }) => theme.text_primary + 99};
   @media only screen and (max-width: 768px) {
     font-size: 14px;
   }
 `;
+
 const Degree = styled.div`
   font-size: 14px;
-  font-weight: 500px;
+  font-weight: 500;
   color: ${({ theme }) => theme.text_secondary + 99};
   @media only screen and (max-width: 768px) {
     font-size: 12px;
   }
 `;
+
 const Date = styled.div`
   font-size: 12px;
-  font-weight: 400px;
+  font-weight: 400;
   color: ${({ theme }) => theme.text_secondary + 80};
 
   @media only screen and (max-width: 768px) {
@@ -66,6 +71,7 @@ const Grade = styled.div`
     font-size: 12px;
   }
 `;
+
 const Span = styled.div`
   display: -webkit-box;
   max-width: 100%;
@@ -80,7 +86,7 @@ const EducationCard = ({ education }) => {
           height="100%"
           alt={education?.school}
           style={{ borderRadius: "50%", objectFit: "cover" }}
-          src={education?.img}
+          src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${education.img}`}
         />
       }
       contentStyle={{
@@ -100,7 +106,7 @@ const EducationCard = ({ education }) => {
       date={education?.date}
     >
       <Top>
-        <Image src={education?.img} />
+        <Image src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${education.img}`} />
         <Body>
           <School>{education?.school}</School>
           <Degree>{education?.degree}</Degree>
@@ -108,7 +114,7 @@ const EducationCard = ({ education }) => {
         </Body>
       </Top>
       <Grade>
-        <b>Grade : </b>
+        <b>Grade: </b>
         {education?.grade}
       </Grade>
       <Description>

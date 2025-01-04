@@ -3,7 +3,7 @@ import axios from "axios";
 import { VerticalTimeline } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 import styled from "styled-components";
-import EducationCard from "../cards/EducationCard";
+import EducationCard from "../cards/EducationCard";  // Ensure this path is correct
 import EarthCanvas from "../canvas/Earth";
 
 const Container = styled.div`
@@ -55,11 +55,9 @@ const Education = () => {
   const [educationData, setEducationData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
 
   // Fetch education data from the API
   useEffect(() => {
-    console.log(process.env.REACT_APP_API_URL);
     const fetchEducationData = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/education`);

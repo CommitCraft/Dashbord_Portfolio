@@ -92,7 +92,7 @@ const ExperienceCard = ({ experience }) => {
           height="100%"
           alt={experience?.company}
           style={{ borderRadius: "50%", objectFit: "cover" }}
-          src={experience?.img}
+          src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${experience.img}`}
         />
       }
       contentStyle={{
@@ -112,7 +112,7 @@ const ExperienceCard = ({ experience }) => {
       date={experience?.date}
     >
       <Top>
-        <Image src={experience?.img} />
+        <Image src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${experience.img}`} />
         <Body>
           <Role>{experience?.role}</Role>
           <Company>{experience?.company}</Company>
