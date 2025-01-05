@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { skills } from "../../data/constants";
 import { Tilt } from "react-tilt";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  position: rlative;
+  position: relative;
   z-index: 1;
   align-items: center;
 `;
@@ -24,18 +26,19 @@ const Wrapper = styled.div`
     flex-direction: column;
   }
 `;
+
 const Title = styled.div`
   font-size: 52px;
   text-align: center;
   font-weight: 600;
   margin-top: 20px;
-
   color: ${({ theme }) => theme.text_primary};
   @media (max-width: 768px) {
     margin-top: 12px;
     font-size: 32px;
   }
 `;
+
 const Desc = styled.div`
   font-size: 18px;
   text-align: center;
@@ -67,7 +70,6 @@ const Skill = styled.div`
     max-width: 400px;
     padding: 10px 36px;
   }
-
   @media (max-width: 500px) {
     max-width: 330px;
     padding: 10px 36px;
@@ -89,6 +91,7 @@ const SkillList = styled.div`
   gap: 12px;
   margin-bottom: 20px;
 `;
+
 const SkillItem = styled.div`
   font-size: 16px;
   font-weight: 400;
@@ -100,7 +103,6 @@ const SkillItem = styled.div`
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   @media (max-width: 768px) {
     font-size: 14px;
     padding: 8px 12px;
@@ -110,41 +112,88 @@ const SkillItem = styled.div`
     padding: 6px 12px;
   }
 `;
+
 const SkillImage = styled.img`
   width: 24px;
   height: 24px;
 `;
 
+const UploadForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  gap: 16px;
+`;
+
+const Input = styled.input`
+  padding: 10px;
+  border: 1px solid ${({ theme }) => theme.text_secondary};
+  border-radius: 8px;
+  width: 300px;
+`;
+
+const SubmitButton = styled.button`
+  padding: 10px 20px;
+  background-color: ${({ theme }) => theme.text_primary};
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  &:hover {
+    background-color: ${({ theme }) => theme.text_secondary};
+  }
+`;
+
 const Skills = () => {
-  return (
+  const [skills, setSkills] = useState([]);
+  const [error, setError] = useState(null);
+  const [title, setTitle] = useState("");
+  const [name, setName] = useState("");
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/skills`);
+        setSkills(response.data);
+      } catch (err) {
+        console.error("Error fetching skills:", err);
+        setError(err.message);
+      }
+    };
+
+    fetchSkills();
+  }, []);
+
+   return (
     <Container id="Skills">
       <Wrapper>
         <Title>Skills</Title>
-        <Desc
-          style={{
-            marginBottom: "40px",
-          }}
-        >
-          Here are some of my skills on which I have been working on for the
-          past 3 years.
-        </Desc>
+        <Desc>Here are some of my skills on which I have been working on for the past 3 years.</Desc>
+
+        {error && <p style={{ color: "red" }}>{error}</p>}
+
+        
 
         <SkillsContainer>
-          {skills.map((skill, index) => (
-            <Tilt>
-              <Skill key={`skill-${index}`}>
-                <SkillTitle>{skill.title}</SkillTitle>
-                <SkillList>
-                  {skill.skills.map((item, index_x) => (
-                    <SkillItem key={`skill-x-${index_x}`}>
-                      <SkillImage src={item.image} />
-                      {item.name}
+          {skills.length > 0 &&
+            skills.map((skill, index) => (
+              <Tilt key={`skill-tilt-${index}`}>
+                <Skill>
+                  <SkillTitle>{skill.title}</SkillTitle>
+                  <SkillList>
+                    <SkillItem>
+                      <SkillImage
+                        src={`${API_URL}${skill.image}`}
+                        alt={`${skill.name} logo`}
+                      />
+                      {skill.name}
                     </SkillItem>
-                  ))}
-                </SkillList>
-              </Skill>
-            </Tilt>
-          ))}
+                  </SkillList>
+                </Skill>
+              </Tilt>
+            ))}
         </SkillsContainer>
       </Wrapper>
     </Container>

@@ -72,15 +72,15 @@ const Title = styled.div`
   text-overflow: ellipsis;
 `;
 
-const Date = styled.div`
-  font-size: 12px;
-  margin-left: 2px;
-  font-weight: 400;
-  color: ${({ theme }) => theme.text_secondary + 80};
-  @media only screen and (max-width: 768px) {
-    font-size: 10px;
-  }
-`;
+// const Date = styled.div`
+//   font-size: 12px;
+//   margin-left: 2px;
+//   font-weight: 400;
+//   color: ${({ theme }) => theme.text_secondary + 80};
+//   @media only screen and (max-width: 768px) {
+//     font-size: 10px;
+//   }
+// `;
 
 const Description = styled.div`
   font-weight: 400;

@@ -1,3 +1,4 @@
+const { request } = require('http');
 const About = require('../models/About');
 const path = require('path');
 
@@ -6,6 +7,7 @@ exports.getAllAbout = async (req, res) => {
   try {
     const abouts = await About.findAll();
     res.status(200).json(abouts);
+    console.log("Get Data ABout", abouts);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch about entries.' });
   }
@@ -29,6 +31,7 @@ exports.createAbout = async (req, res) => {
 
     // Get the uploaded image file path
     const image = req.file ? req.file.path : null;
+    
 
     const newAbout = await About.create({
       name,
