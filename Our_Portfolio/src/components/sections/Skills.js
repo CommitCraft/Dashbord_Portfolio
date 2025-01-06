@@ -118,39 +118,39 @@ const SkillImage = styled.img`
   height: 24px;
 `;
 
-const UploadForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-  gap: 16px;
-`;
+// const UploadForm = styled.form`
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   margin-top: 20px;
+//   gap: 16px;
+// `;
 
-const Input = styled.input`
-  padding: 10px;
-  border: 1px solid ${({ theme }) => theme.text_secondary};
-  border-radius: 8px;
-  width: 300px;
-`;
+// const Input = styled.input`
+//   padding: 10px;
+//   border: 1px solid ${({ theme }) => theme.text_secondary};
+//   border-radius: 8px;
+//   width: 300px;
+// `;
 
-const SubmitButton = styled.button`
-  padding: 10px 20px;
-  background-color: ${({ theme }) => theme.text_primary};
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  &:hover {
-    background-color: ${({ theme }) => theme.text_secondary};
-  }
-`;
+// const SubmitButton = styled.button`
+//   padding: 10px 20px;
+//   background-color: ${({ theme }) => theme.text_primary};
+//   color: #fff;
+//   border: none;
+//   border-radius: 8px;
+//   cursor: pointer;
+//   &:hover {
+//     background-color: ${({ theme }) => theme.text_secondary};
+//   }
+// `;
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
   const [error, setError] = useState(null);
-  const [title, setTitle] = useState("");
-  const [name, setName] = useState("");
-  const [image, setImage] = useState(null);
+  // const [title, setTitle] = useState("");
+  // const [name, setName] = useState("");
+  // const [image, setImage] = useState(null);
 
   useEffect(() => {
     const fetchSkills = async () => {

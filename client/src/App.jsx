@@ -11,6 +11,7 @@ import Skills from "./pages/Skills";
 import Education from "./pages/Education";
 import Experience from "./pages/Experience";
 import Projects from "./pages/Projects";
+import Categories from "./components/Categories";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -71,6 +72,10 @@ function App() {
           <Route
             path="/projects"
             element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<Projects/>} />}
+          />
+          <Route
+            path="/categories"
+            element={<ProtectedRoute isAuthenticated={isAuthenticated} element={<Categories/>} />}
           />
         </Route>
 

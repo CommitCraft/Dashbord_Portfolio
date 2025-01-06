@@ -79,6 +79,14 @@ const Navbar = ({ logout }) => {
             </li>
             <li>
               <Link
+                to="/categories"
+                className={`hover:text-blue-300 ${isActive("/categories")}`}
+              >
+                Categories
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/contact"
                 className={`hover:text-blue-300 ${isActive("/contact")}`}
               >

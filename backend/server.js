@@ -13,23 +13,23 @@ const skillRoutes=require('./routes/skillRoutes');
 const projectRoutes=require('./routes/projectRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const upload = require('./middlewares/upload');
+const skillCategoryRoutes = require('./routes/skillCategoryRoutes');
+const projectCategoryRoutes = require('./routes/projectCategoryRoutes');
 
 dotenv.config();
 
 const app = express();
 
 // Configure CORS options
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000']; // Corrected
+const allowedOrigins = ['http://localhost:5174', 'http://localhost:3000']; // Corrected
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Allow cookies and credentials
+  origin: '*', // Allow all origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
+
+app.use(cors(corsOptions));
+
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
@@ -103,7 +103,8 @@ app.use('/api/contacts', contactRoutes);
 app.use("/api/experiences", experienceRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/projects', projectRoutes);
-
+app.use('/api/skill-categories', skillCategoryRoutes);
+app.use('/api/project-categories', projectCategoryRoutes);
 
 // Global error handling
 app.use((err, req, res, next) => {

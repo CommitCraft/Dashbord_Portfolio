@@ -10,7 +10,7 @@ const Contact = sequelize.define('Contact', {
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
+    
   },
   message: {
     type: DataTypes.TEXT,
