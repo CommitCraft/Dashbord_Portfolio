@@ -1,61 +1,81 @@
 const Skill = require('../models/Skill');
-
-// Get all skills
-exports.getAllSkills = async (req, res) => {
-  try {
-    const skills = await Skill.findAll();
-    res.status(200).json(skills);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch skills' });
-  }
-};
+const Category = require('../models/SkillCategory');
 
 // Create a new skill
 exports.createSkill = async (req, res) => {
   try {
-    const { title, name } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const { title, categoryId } = req.body;
+    const image = req.file ? req.file.path : null;
 
-    if (!title || !name) {
-      return res.status(400).json({ error: 'Title and Name are required.' });
+    const skill = await Skill.create({ title, categoryId, image });
+    res.status(201).json({ message: 'Skill created successfully', skill });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get all skills
+exports.getSkills = async (req, res) => {
+  try {
+    const skills = await Skill.findAll({ include: Category });
+    res.status(200).json(skills);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get a skill by ID
+exports.getSkillById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const skill = await Skill.findByPk(id, { include: Category });
+
+    if (!skill) {
+      return res.status(404).json({ message: 'Skill not found' });
     }
 
-    const skill = await Skill.create({ title, name, image });
-    res.status(201).json(skill);
-  } catch (error) {
-    res.status(400).json({ error: 'Failed to create skill' });
+    res.status(200).json(skill);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
 // Update a skill
 exports.updateSkill = async (req, res) => {
   try {
-    const { title, name } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const { id } = req.params;
+    const { title, categoryId } = req.body;
+    const image = req.file ? req.file.path : null;
 
-    const skill = await Skill.findByPk(req.params.id);
+    const skill = await Skill.findByPk(id);
     if (!skill) {
-      return res.status(404).json({ error: 'Skill not found' });
+      return res.status(404).json({ message: 'Skill not found' });
     }
 
-    await skill.update({ title, name, image: image || skill.image });
-    res.status(200).json(skill);
-  } catch (error) {
-    res.status(400).json({ error: 'Failed to update skill' });
+    skill.title = title || skill.title;
+    skill.categoryId = categoryId || skill.categoryId;
+    if (image) skill.image = image;
+
+    await skill.save();
+    res.status(200).json({ message: 'Skill updated successfully', skill });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
 // Delete a skill
 exports.deleteSkill = async (req, res) => {
   try {
-    const skill = await Skill.findByPk(req.params.id);
+    const { id } = req.params;
+
+    const skill = await Skill.findByPk(id);
     if (!skill) {
-      return res.status(404).json({ error: 'Skill not found' });
+      return res.status(404).json({ message: 'Skill not found' });
     }
 
     await skill.destroy();
     res.status(200).json({ message: 'Skill deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete skill' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

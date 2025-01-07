@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
+const Category = require('./SkillCategory');
 
 const Skill = sequelize.define('Skill', {
   id: {
@@ -11,10 +12,6 @@ const Skill = sequelize.define('Skill', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   image: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -23,5 +20,9 @@ const Skill = sequelize.define('Skill', {
   tableName: 'skills',
   timestamps: true,
 });
+
+// Association
+Skill.belongsTo(Category, { foreignKey: 'categoryId', onDelete: 'CASCADE' });
+Category.hasMany(Skill, { foreignKey: 'categoryId' });
 
 module.exports = Skill;

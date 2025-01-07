@@ -1,116 +1,91 @@
 import React, { useEffect, useState } from 'react';
 import { FaEdit, FaTrashAlt, FaPlus } from 'react-icons/fa';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Modal for Adding or Editing Skill
-const SkillFormModal = ({ isVisible, onClose, onSubmit, formData, isEditing }) => {
-  const [localFormData, setLocalFormData] = useState(formData);
+// Utility function to normalize URL paths
+const joinURL = (base, path) => {
+  return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+};
 
-  useEffect(() => {
-    setLocalFormData(formData);
-  }, [formData]);
-
-  const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
-    setLocalFormData((prevState) => ({
-      ...prevState,
-      [name]: type === 'file' ? files[0] : value,
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(localFormData);
-    onClose();
-  };
-
+const CategoriesTable = ({ categories, onDelete }) => {
   return (
-    isVisible && (
-      <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-          <h3 className="text-lg font-semibold mb-4">{isEditing ? 'Edit Skill' : 'Add New Skill'}</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium">Title</label>
-              <input
-                type="text"
-                name="title"
-                value={localFormData.title || ''}
-                onChange={handleChange}
-                className="border p-2 mt-1 w-full"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium">Name</label>
-              <input
-                type="text"
-                name="name"
-                value={localFormData.name || ''}
-                onChange={handleChange}
-                className="border p-2 mt-1 w-full"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium">Image</label>
-              <input
-                type="file"
-                name="image"
-                onChange={handleChange}
-                className="border p-2 mt-1 w-full"
-              />
-            </div>
-            <div className="flex justify-end gap-4">
-              <button
-                type="submit"
-                className="bg-green-500 text-white py-2 px-4 rounded"
-              >
-                {isEditing ? 'Update' : 'Submit'}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="bg-gray-500 text-white py-2 px-4 rounded"
-              >
-                Close
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    )
+    <div className="mt-8">
+      <h3 className="text-lg font-semibold mb-4">Categories</h3>
+      <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border border-gray-200 p-2 text-left">ID</th>
+            <th className="border border-gray-200 p-2 text-left">Name</th>
+            <th className="border border-gray-200 p-2 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map((category) => (
+            <tr key={category.id} className="hover:bg-gray-50">
+              <td className="border border-gray-200 p-2">{category.id}</td>
+              <td className="border border-gray-200 p-2">{category.name}</td>
+              <td className="border border-gray-200 p-2">
+                <button
+                  onClick={() => onDelete(category.id)}
+                  className="text-red-500 hover:underline"
+                >
+                  <FaTrashAlt size={20} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentSkill, setCurrentSkill] = useState({
     id: null,
     title: '',
     name: '',
+    categoryId: '',
     image: null,
   });
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     fetchSkills();
+    fetchCategories();
   }, []);
 
   const fetchSkills = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/skills`);
       setSkills(response.data);
     } catch (error) {
-      console.error('Error fetching skills data:', error);
+      toast.error('Failed to fetch skills.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/skill-categories`);
+      setCategories(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch categories.');
     }
   };
 
   const handleAddNewSkill = () => {
-    setCurrentSkill({ id: null, title: '', name: '', image: null });
+    setCurrentSkill({ id: null, title: '', name: '', categoryId: '', image: null });
     setIsEditing(false);
     setIsModalVisible(true);
   };
@@ -126,118 +101,205 @@ const Skills = () => {
       try {
         await axios.delete(`${API_BASE_URL}/skills/${id}`);
         setSkills((prevSkills) => prevSkills.filter((skill) => skill.id !== id));
+        toast.success('Skill deleted successfully!');
       } catch (error) {
-        console.error('Error deleting skill:', error);
+        toast.error('Failed to delete skill.');
       }
     }
   };
 
-  const handleSubmit = async (skillData) => {
+  const handleDeleteCategory = async (id) => {
+    if (window.confirm('Are you sure you want to delete this category?')) {
+      try {
+        await axios.delete(`${API_BASE_URL}/skill-categories/${id}`);
+        setCategories((prevCategories) => prevCategories.filter((category) => category.id !== id));
+        toast.success('Category deleted successfully!');
+      } catch (error) {
+        toast.error('Failed to delete category.');
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     const formData = new FormData();
 
-    // Append fields to FormData
-    Object.keys(skillData).forEach((key) => {
-      if (key === 'image' && skillData.image && typeof skillData.image !== 'string') {
-        formData.append(key, skillData.image); // Append file only if it's a File object
+    Object.keys(currentSkill).forEach((key) => {
+      if (key === 'image' && currentSkill.image && typeof currentSkill.image !== 'string') {
+        formData.append(key, currentSkill.image);
       } else if (key !== 'image') {
-        formData.append(key, skillData[key]);
+        formData.append(key, currentSkill[key]);
       }
     });
 
-    // Debugging FormData
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
     try {
-      let response;
-      if (skillData.id) {
-        // Update existing skill
-        response = await axios.put(`${API_BASE_URL}/skills/${skillData.id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        setSkills((prevSkills) =>
-          prevSkills.map((skill) => (skill.id === skillData.id ? response.data : skill))
+      if (isEditing) {
+        const response = await axios.put(
+          `${API_BASE_URL}/skills/${currentSkill.id}`,
+          formData,
+          { headers: { 'Content-Type': 'multipart/form-data' } }
         );
+        setSkills((prevSkills) =>
+          prevSkills.map((skill) => (skill.id === currentSkill.id ? response.data : skill))
+        );
+        toast.success('Skill updated successfully!');
       } else {
-        // Add new skill
-        response = await axios.post(`${API_BASE_URL}/skills`, formData, {
+        const response = await axios.post(`${API_BASE_URL}/skills`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         setSkills((prevSkills) => [...prevSkills, response.data]);
+        toast.success('Skill added successfully!');
       }
+      setIsModalVisible(false);
     } catch (error) {
-      console.error('Error submitting skill:', error.response?.data || error.message);
+      toast.error('Failed to save skill.');
     }
   };
 
   return (
     <div className="container mx-auto p-6">
+      <ToastContainer />
       <h2 className="text-2xl font-semibold mb-4">Skills</h2>
 
-      <div className="flex justify-end mb-4">
-        <button
-          className="bg-blue-500 text-white py-2 px-4 rounded flex items-center gap-2"
-          onClick={handleAddNewSkill}
-        >
-          <FaPlus />
-          Add New Skill
-        </button>
-      </div>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <div className="flex justify-end mb-4">
+            <button
+              className="bg-blue-500 text-white py-2 px-4 rounded flex items-center gap-2"
+              onClick={handleAddNewSkill}
+            >
+              <FaPlus />
+              Add New Skill
+            </button>
+          </div>
 
-      <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-200 p-2 text-left">Title</th>
-            <th className="border border-gray-200 p-2 text-left">Name</th>
-            <th className="border border-gray-200 p-2 text-left">Image</th>
-            <th className="border border-gray-200 p-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {skills.map((skill) => (
-            <tr key={skill.id} className="hover:bg-gray-50">
-              <td className="border border-gray-200 p-2">{skill.title}</td>
-              <td className="border border-gray-200 p-2">{skill.name}</td>
-              <td className="border border-gray-200 p-2">
-                {skill.image ? (
-                  <img
-                    src={`${API_BASE_URL.replace('/api', '')}${skill.image}`}
-                    alt={skill.name}
-                    className="w-12 h-12 object-cover rounded"
-                  />
-                ) : (
-                  <span>No Image</span>
-                )}
-              </td>
-              <td className="border border-gray-200 p-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEditSkill(skill)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    <FaEdit size={20} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteSkill(skill.id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    <FaTrashAlt size={20} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <table className="table-auto w-full border-collapse border border-gray-200 shadow-md">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border border-gray-200 p-2 text-left">Title</th>
+                <th className="border border-gray-200 p-2 text-left">Name</th>
+                <th className="border border-gray-200 p-2 text-left">Category</th>
+                <th className="border border-gray-200 p-2 text-left">Image</th>
+                <th className="border border-gray-200 p-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {skills.map((skill) => (
+                <tr key={skill.id} className="hover:bg-gray-50">
+                  <td className="border border-gray-200 p-2">{skill.title}</td>
+                  <td className="border border-gray-200 p-2">{skill.name}</td>
+                  <td className="border border-gray-200 p-2">
+                    {categories.find((cat) => cat.id === skill.categoryId)?.name || 'N/A'}
+                  </td>
+                  <td className="border border-gray-200 p-2">
+                    {skill.image ? (
+                      <img
+                        src={joinURL(API_BASE_URL.replace('/api', ''), skill.image)}
+                        alt={skill.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    ) : (
+                      <span>No Image</span>
+                    )}
+                  </td>
+                  <td className="border border-gray-200 p-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditSkill(skill)}
+                        className="text-blue-500 hover:underline"
+                      >
+                        <FaEdit size={20} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSkill(skill.id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        <FaTrashAlt size={20} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-      <SkillFormModal
-        isVisible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onSubmit={handleSubmit}
-        formData={currentSkill}
-        isEditing={isEditing}
-      />
+          <CategoriesTable categories={categories} onDelete={handleDeleteCategory} />
+        </>
+      )}
+
+      {isModalVisible && (
+        <div className="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-md">
+            <h3 className="text-lg font-semibold mb-4">
+              {isEditing ? 'Edit Skill' : 'Add New Skill'}
+            </h3>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Title</label>
+                <input
+                  type="text"
+                  value={currentSkill.title}
+                  onChange={(e) => setCurrentSkill({ ...currentSkill, title: e.target.value })}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Name</label>
+                <input
+                  type="text"
+                  value={currentSkill.name}
+                  onChange={(e) => setCurrentSkill({ ...currentSkill, name: e.target.value })}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  value={currentSkill.categoryId}
+                  onChange={(e) =>
+                    setCurrentSkill({ ...currentSkill, categoryId: e.target.value })
+                  }
+                  className="w-full p-2 border rounded"
+                  required
+                >
+                  <option value="">Select a Category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Image</label>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    setCurrentSkill({ ...currentSkill, image: e.target.files[0] })
+                  }
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div className="flex justify-end gap-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalVisible(false)}
+                  className="bg-gray-500 text-white py-2 px-4 rounded"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded">
+                  {isEditing ? 'Update' : 'Add'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
