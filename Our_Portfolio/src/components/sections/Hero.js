@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-// import { Bio } from "../../data/constants"; // You can remove this if not using any hardcoded data
 import Typewriter from "typewriter-effect";
-// import HeroImg from "../../images/HeroImage.png";
 import HeroBgAnimation from "../HeroBgAnimation";
 import { Tilt } from "react-tilt";
 import { motion } from "framer-motion";
@@ -14,6 +12,7 @@ import {
 import StarCanvas from "../canvas/Stars";
 import axios from "axios";
 
+// Styled Components
 const HeroContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -21,12 +20,10 @@ const HeroContainer = styled.div`
   padding: 10px 30px;
   z-index: 1;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 70% 95%, 0 100%);
-  
   @media (max-width: 960px) {
     padding: 66px 16px;
     flex-direction: column;
   }
-
   @media (max-width: 640px) {
     padding: 32px 16px;
   }
@@ -39,7 +36,6 @@ const HeroInnerContainer = styled.div`
   align-items: center;
   width: 100%;
   max-width: 1100px;
-
   @media (max-width: 960px) {
     flex-direction: column;
   }
@@ -63,7 +59,6 @@ const HeroRightContainer = styled.div`
   order: 2;
   display: flex;
   justify-content: end;
-
   @media (max-width: 960px) {
     order: 1;
     display: flex;
@@ -72,7 +67,6 @@ const HeroRightContainer = styled.div`
     justify-content: center;
     margin-bottom: 80px;
   }
-
   @media (max-width: 640px) {
     margin-bottom: 30px;
   }
@@ -83,11 +77,9 @@ const Title = styled.h1`
   font-size: 50px;
   color: ${({ theme }) => theme.text_primary};
   line-height: 68px;
-  
   @media (max-width: 960px) {
     text-align: center;
   }
-
   @media (max-width: 960px) {
     font-size: 40px;
     line-height: 48px;
@@ -102,11 +94,9 @@ const TextLoop = styled.div`
   gap: 12px;
   color: ${({ theme }) => theme.text_primary};
   line-height: 68px;
-
   @media (max-width: 960px) {
     text-align: center;
   }
-
   @media (max-width: 960px) {
     font-size: 22px;
     line-height: 48px;
@@ -124,15 +114,12 @@ const SubTitle = styled.div`
   line-height: 32px;
   margin-bottom: 42px;
   color: ${({ theme }) => theme.text_primary + 95};
-
   @media (max-width: 960px) {
     text-align: center;
   }
 `;
 
 const ResumeButton = styled.a`
-  -webkit-appearance: button;
-  -moz-appearance: button;
   appearance: button;
   text-decoration: none;
   width: 95%;
@@ -144,14 +131,12 @@ const ResumeButton = styled.a`
   border-radius: 50px;
   font-weight: 600;
   font-size: 20px;
-
   &:hover {
     transform: scale(1.05);
     transition: all 0.4s ease-in-out;
     box-shadow: 20px 20px 60px #1f2634;
     filter: brightness(1);
   }
-
   @media (max-width: 640px) {
     padding: 12px 0;
     font-size: 18px;
@@ -166,7 +151,6 @@ const Img = styled.img`
   max-width: 400px;
   max-height: 400px;
   border: 2px solid ${({ theme }) => theme.primary};
-
   @media (max-width: 640px) {
     max-width: 280px;
     max-height: 280px;
@@ -185,62 +169,45 @@ const HeroBg = styled.div`
   max-width: 1360px;
   overflow: hidden;
   padding: 0 30px;
-
   @media (max-width: 960px) {
     justify-content: center;
     padding: 0 0;
   }
 `;
 
+// Hero Component
 const Hero = () => {
   const [bioData, setBioData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchBioData = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/about`);
-        
-        // Log the full response to check its structure
-        console.log("Fetched Bio Data:", response.data);
+        const { name, roles, description, resume, image } = response.data[0];
+        const parsedRoles = typeof roles === "string" ? JSON.parse(roles) : roles;
 
-        // Check if response contains expected fields
-        if (response.data) {
-          let { name, roles, description, resume,image } = response.data[0];
-
-          // If roles is a JSON string, parse it into an array
-          if (typeof roles === "string") {
-            try {
-              roles = JSON.parse(roles);
-              console.log("Parsed Roles:", roles);
-            } catch (error) {
-              console.error("Error parsing roles JSON:", error);
-            }
-          }
-
-          // Log individual fields
-          console.log("Name:", name);
-          console.log("Roles:", roles);
-          console.log("Description:", description);
-          console.log("Resume URL:", resume);
-          console.log("Image", image);
-
-          // Set bio data
-          setBioData({ name, roles, description, resume,image });
-        } else {
-          console.error("No data returned from API.");
-        }
-        
-      } catch (error) {
-        console.error("Error fetching bio data:", error);
+        setBioData({
+          name,
+          roles: parsedRoles,
+          description,
+          resume,
+          image,
+        });
+      } catch (err) {
+        setError("Failed to load bio data. Please try again later.");
+        console.error(err);
       }
     };
 
     fetchBioData();
   }, []);
 
-  if (!bioData) {
-    return <p>Loading...</p>;
-  }
+  if (error) return <p>{error}</p>;
+  if (!bioData) return <p>Loading...</p>;
+
+  const baseURL = process.env.REACT_APP_API_URL.replace(/\/api$/, "");
+  const imageURL = `${baseURL}${bioData.image.startsWith("/") ? "" : "/"}${bioData.image}`;
 
   return (
     <div id="About">
@@ -269,24 +236,17 @@ const Hero = () => {
                   </Span>
                 </TextLoop>
               </motion.div>
-
               <motion.div {...headContentAnimation}>
                 <SubTitle>{bioData.description}</SubTitle>
               </motion.div>
-
-              <ResumeButton
-                href={bioData.resume}
-                target="_blank"
-                aria-label="Open Resume in a new tab"
-              >
+              <ResumeButton href={bioData.resume} target="_blank" aria-label="Open Resume in a new tab">
                 Check Resume
               </ResumeButton>
             </HeroLeftContainer>
-
             <HeroRightContainer>
               <motion.div {...headContentAnimation}>
                 <Tilt>
-                  <Img src={`${process.env.REACT_APP_API_URL.replace('/api', '')}${bioData.image}`} alt="Portrait of Vipin Kushwaha" />
+                  <Img src={imageURL} alt={`Portrait of ${bioData.name}`} />
                 </Tilt>
               </motion.div>
             </HeroRightContainer>

@@ -5,6 +5,10 @@ import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
+const normalizeURL = (base, path) => {
+  return `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+};
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -53,12 +57,12 @@ const SkillsContainer = styled.div`
   width: 100%;
   display: flex;
   flex-wrap: wrap;
-  margin-top: 20px;
   gap: 50px;
   justify-content: center;
+  margin-top: 20px;
 `;
 
-const Skill = styled.div`
+const SkillCard = styled.div`
   width: 100%;
   max-width: 500px;
   background-color: rgba(17, 25, 40, 0.83);
@@ -77,7 +81,7 @@ const Skill = styled.div`
 `;
 
 const SkillTitle = styled.div`
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
   margin-bottom: 20px;
   text-align: center;
@@ -86,10 +90,9 @@ const SkillTitle = styled.div`
 
 const SkillList = styled.div`
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 20px;
+  justify-content: center;
 `;
 
 const SkillItem = styled.div`
@@ -101,7 +104,6 @@ const SkillItem = styled.div`
   padding: 12px 16px;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   @media (max-width: 768px) {
     font-size: 14px;
@@ -118,82 +120,74 @@ const SkillImage = styled.img`
   height: 24px;
 `;
 
-// const UploadForm = styled.form`
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   margin-top: 20px;
-//   gap: 16px;
-// `;
-
-// const Input = styled.input`
-//   padding: 10px;
-//   border: 1px solid ${({ theme }) => theme.text_secondary};
-//   border-radius: 8px;
-//   width: 300px;
-// `;
-
-// const SubmitButton = styled.button`
-//   padding: 10px 20px;
-//   background-color: ${({ theme }) => theme.text_primary};
-//   color: #fff;
-//   border: none;
-//   border-radius: 8px;
-//   cursor: pointer;
-//   &:hover {
-//     background-color: ${({ theme }) => theme.text_secondary};
-//   }
-// `;
-
 const Skills = () => {
-  const [skills, setSkills] = useState([]);
+  const [skillsByCategory, setSkillsByCategory] = useState({});
   const [error, setError] = useState(null);
-  // const [title, setTitle] = useState("");
-  // const [name, setName] = useState("");
-  // const [image, setImage] = useState(null);
 
   useEffect(() => {
-    const fetchSkills = async () => {
+    const fetchCategoriesAndSkills = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/skills`);
-        setSkills(response.data);
+        // Fetch categories
+        const categoryResponse = await axios.get(`${API_URL}/api/skill-categories`);
+        const categories = categoryResponse.data;
+
+        // Fetch skills
+        const skillResponse = await axios.get(`${API_URL}/api/skills`);
+        const skills = skillResponse.data;
+
+        // Map skills to their categories
+        const groupedSkills = {};
+        categories.forEach((category) => {
+          groupedSkills[category.name] = skills.filter((skill) => skill.categoryId === category.id);
+        });
+
+        setSkillsByCategory(groupedSkills);
       } catch (err) {
-        console.error("Error fetching skills:", err);
-        setError(err.message);
+        console.error("Error fetching categories or skills:", err);
+        setError("Failed to fetch categories or skills. Please try again later.");
       }
     };
 
-    fetchSkills();
+    fetchCategoriesAndSkills();
   }, []);
 
-   return (
+  return (
     <Container id="Skills">
       <Wrapper>
         <Title>Skills</Title>
-        <Desc>Here are some of my skills on which I have been working on for the past 3 years.</Desc>
+        <Desc>Here are the skills grouped into their respective categories.</Desc>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
 
-        
-
         <SkillsContainer>
-          {skills.length > 0 &&
-            skills.map((skill, index) => (
-              <Tilt key={`skill-tilt-${index}`}>
-                <Skill>
-                  <SkillTitle>{skill.title}</SkillTitle>
+          {Object.keys(skillsByCategory).length > 0 ? (
+            Object.keys(skillsByCategory).map((category, index) => (
+              <Tilt key={`category-tilt-${index}`}>
+                <SkillCard>
+                  <SkillTitle>{category}</SkillTitle>
                   <SkillList>
-                    <SkillItem>
-                      <SkillImage
-                        src={`${API_URL}${skill.image}`}
-                        alt={`${skill.name} logo`}
-                      />
-                      {skill.name}
-                    </SkillItem>
+                    {skillsByCategory[category].length > 0 ? (
+                      skillsByCategory[category].map((skill, skillIndex) => (
+                        <SkillItem key={`skill-item-${skillIndex}`}>
+                          {skill.image && (
+                            <SkillImage
+                              src={normalizeURL(API_URL, skill.image)}
+                              alt={`${skill.title} logo`}
+                            />
+                          )}
+                          {skill.title}
+                        </SkillItem>
+                      ))
+                    ) : (
+                      <p style={{ color: "gray" }}>No skills available in this category.</p>
+                    )}
                   </SkillList>
-                </Skill>
+                </SkillCard>
               </Tilt>
-            ))}
+            ))
+          ) : (
+            <p style={{ color: "gray" }}>No skills available at the moment.</p>
+          )}
         </SkillsContainer>
       </Wrapper>
     </Container>

@@ -224,8 +224,10 @@ const About = () => {
           <tbody>
             {bioData.map((bio) => (
               <tr key={bio.id} className="hover:bg-gray-50 text-xs md:text-sm">
+          {/* {console.log(bioData[0].image)} */}
                 <td className="p-3">
                   {bio.image && (
+                
                     <img
                       src={formatUrl(import.meta.env.VITE_API_BASE_URL.replace('/api', ''), bio.image)}
                       alt="Profile"
