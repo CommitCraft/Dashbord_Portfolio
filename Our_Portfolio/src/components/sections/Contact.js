@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
 import styled from "styled-components";
-import emailjs from "@emailjs/browser";
 
 const Container = styled.div`
   display: flex;
@@ -29,7 +28,7 @@ const Title = styled.div`
   text-align: center;
   font-weight: 600;
   margin-top: 20px;
-  color: ${({ theme }) => theme.text_primary};
+  color: ${({ theme }) => theme.text_primary || "#000"};
   @media (max-width: 768px) {
     margin-top: 12px;
     font-size: 32px;
@@ -40,7 +39,7 @@ const Desc = styled.div`
   font-size: 18px;
   text-align: center;
   font-weight: 600;
-  color: ${({ theme }) => theme.text_secondary};
+  color: ${({ theme }) => theme.text_secondary || "#666"};
   @media (max-width: 768px) {
     font-size: 16px;
   }
@@ -64,34 +63,34 @@ const ContactTitle = styled.div`
   font-size: 28px;
   margin-bottom: 6px;
   font-weight: 600;
-  color: ${({ theme }) => theme.text_primary};
+  color: ${({ theme }) => theme.text_primary || "#000"};
 `;
 
 const ContactInput = styled.input`
   flex: 1;
   background-color: transparent;
-  border: 1px solid ${({ theme }) => theme.text_secondary + 50};
+  border: 1px solid ${({ theme }) => theme.text_secondary || "#ccc"};
   outline: none;
   font-size: 18px;
-  color: ${({ theme }) => theme.text_primary};
+  color: ${({ theme }) => theme.text_primary || "#000"};
   border-radius: 12px;
   padding: 12px 16px;
   &:focus {
-    border: 1px solid ${({ theme }) => theme.primary};
+    border: 1px solid ${({ theme }) => theme.primary || "#5e9ed6"};
   }
 `;
 
 const ContactInputMessage = styled.textarea`
   flex: 1;
   background-color: transparent;
-  border: 1px solid ${({ theme }) => theme.text_secondary + 50};
+  border: 1px solid ${({ theme }) => theme.text_secondary || "#ccc"};
   outline: none;
   font-size: 18px;
-  color: ${({ theme }) => theme.text_primary};
+  color: ${({ theme }) => theme.text_primary || "#000"};
   border-radius: 12px;
   padding: 12px 16px;
   &:focus {
-    border: 1px solid ${({ theme }) => theme.primary};
+    border: 1px solid ${({ theme }) => theme.primary || "#5e9ed6"};
   }
 `;
 
@@ -104,7 +103,7 @@ const ContactButton = styled.input`
   margin-top: 2px;
   border-radius: 12px;
   border: none;
-  color: ${({ theme }) => theme.text_primary};
+  color: ${({ theme }) => theme.text_primary || "#fff"};
   font-size: 18px;
   font-weight: 600;
 `;
@@ -129,48 +128,54 @@ const Contact = () => {
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Start loading
+    setLoading(true);
 
-    emailjs
-      .sendForm(
-        "service_8lvgajd",
-        "template_adlx22q",
-        form.current,
-        "cguwQiAqyJT6242dl"
-      )
-      .then(
-        (result) => {
-          setResponseMessage("Message sent successfully!");
-          setIsError(false);
-          form.current.reset();
+    const formData = new FormData(form.current);
+
+    const data = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      message: formData.get("message"),
+    };
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        (error) => {
-          setResponseMessage("Failed to send message. Please try again.");
-          setIsError(true);
-        }
-      )
-      .finally(() => setLoading(false)); // Stop loading
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        setResponseMessage("Message sent successfully!");
+        setIsError(false);
+        form.current.reset();
+      } else {
+        const errorData = await response.json();
+        setResponseMessage(errorData.error || "Failed to send message.");
+        setIsError(true);
+      }
+    } catch (error) {
+      setResponseMessage("An error occurred. Please try again.");
+      setIsError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Container id="Education">
+    <Container id="contact">
       <Wrapper>
         <Title>Contact</Title>
-        <Desc
-          style={{
-            marginBottom: "40px",
-          }}
-        >
-          Feel free to reach out to me for any questions or opportunities!
-        </Desc>
+        <Desc>Feel free to reach out to me for any questions or opportunities!</Desc>
         <ContactForm ref={form} onSubmit={handleSubmit}>
           <ContactTitle>Email Me 🚀</ContactTitle>
-          <ContactInput placeholder="Your Email" name="from_email" />
-          <ContactInput placeholder="Your Name" name="from_name" />
-          <ContactInput placeholder="Subject" name="subject" />
-          <ContactInputMessage placeholder="Message" name="message" rows={4} />
+          <ContactInput placeholder="Your Name" name="name" required />
+          <ContactInput placeholder="Your Email" name="email" type="email" required />
+          <ContactInputMessage placeholder="Message" name="message" rows={4} required />
           <ContactButton type="submit" value="Send" />
           {loading && <LoadingMessage>Submitting...</LoadingMessage>}
           {responseMessage && (
