@@ -1,177 +1,95 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
-import Dialog from "@mui/material/Dialog"; // Material-UI's Dialog component
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button"; // Import Material-UI Button for Dialog
-import ImageSlider from "./ImageSlider";
-import "slick-carousel/slick/slick.css"; 
-import "slick-carousel/slick/slick-theme.css";
+import Button from "@mui/material/Button";
 
-
-
-
-// Styled Components
+// Styled Card
 const Card = styled.div`
   width: 330px;
-  min-height: 290px; /* Sets a minimum height but allows it to grow */
   background-color: ${({ theme }) => theme.card};
-  cursor: pointer;
-  border-radius: 10px;
-  box-shadow: 0 0 12px 4px rgba(0, 0, 0, 0.4);
-  overflow: hidden;
-  padding: 26px 20px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  transition: all 0.5s ease-in-out;
+  gap: 16px;
+  transition: all 0.3s ease-in-out;
   &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 0 50px 4px rgba(0, 0, 0, 0.6);
-    filter: brightness(1.1);
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
 `;
 
-
+// Styled Image
 const Image = styled.img`
   width: 100%;
   height: auto;
-  background-color: ${({ theme }) => theme.white};
   border-radius: 10px;
-  box-shadow: 0 0 16px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.2);
 `;
 
-const Tags = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-`;
-
-const Details = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0px;
-  padding: 0px 2px;
-`;
-
-const Title = styled.div`
+// Styled Title
+const Title = styled.h3`
   font-size: 20px;
   font-weight: 600;
+  color: ${({ theme }) => theme.text_primary};
+  margin: 0;
+`;
+
+// Styled Description
+const Description = styled.p`
+  font-size: 14px;
   color: ${({ theme }) => theme.text_secondary};
-  overflow: hidden;
-  display: -webkit-box;
-  max-width: 100%;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.5;
+  margin: 0;
 `;
 
-// const Date = styled.div`
-//   font-size: 12px;
-//   margin-left: 2px;
-//   font-weight: 400;
-//   color: ${({ theme }) => theme.text_secondary + 80};
-//   @media only screen and (max-width: 768px) {
-//     font-size: 10px;
-//   }
-// `;
-
-const Description = styled.div`
-  font-weight: 400;
-  color: ${({ theme }) => theme.text_secondary + 99};
-  overflow: hidden;
-  margin-top: 8px;
-  display: -webkit-box;
-  max-width: 100%;
-  -webkit-line-clamp: ${({ lines }) => lines || 26};  // Default to 6 lines if not specified
-  -webkit-box-orient: vertical;
-  text-overflow: ellipsis;
-`;
-
-
-const Members = styled.div`
+// Styled Buttons Container
+const Buttons = styled.div`
   display: flex;
-  align-items: center;
-  padding-left: 10px;
+  justify-content: space-between;
+  margin-top: 10px;
 `;
 
-const Avatar = styled.img`
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  margin-left: -10px;
-  background-color: ${({ theme }) => theme.white};
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  border: 3px solid ${({ theme }) => theme.card};
-`;
-
-// Main ProjectCard Component
 const ProjectCard = ({ project }) => {
-  const [open, setOpen] = useState(false);
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+  // Construct the image URL directly from the project data
+  const imageUrl = project.iconImage
+    ? `${process.env.REACT_APP_API_URL.replace('/api', '')}/${project.iconImage}`
+    : null;
 
   return (
-    <>
-      <Card onClick={handleOpen}>
-        <Image src={project.image} />
-        <Tags></Tags>
-        <Details>
-          <Title>{project.title}</Title>
-          <Description>{project.category}</Description>
-          {/* <Date>{project.date}</Date> */}
-          {/* <Description>{project.description}</Description> */}
-        </Details>
-        <Members>
-          {project.member?.map((member) => (
-            <Avatar src={member.img} key={member.id} />
-          ))}
-        </Members>
-        {/* <Button href={project.github} target="_blank">
-          View Code
-        </Button>
-        <Button href={project.webapp} target="_blank">
-          View Demo
-        </Button> */}
-      </Card>
-
-      {/* Dialog Box */}
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{project.title}</DialogTitle>
-        <DialogContent>
-        <ImageSlider images={project.images} />
-          {/* <Image src={project.images} /> */}
-          
-          <Description><p>{project.description[0]}</p><p>{project.description[1]}</p></Description>
-          <Members>
-            {project.member?.map((member) => (
-              <Avatar src={member.img} key={member.id} />
-            ))}
-          </Members>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Close</Button>
-          <Button href={project.github} target="_blank" color="primary">
+    <Card>
+      {imageUrl ? (
+        <Image src={imageUrl} alt={project.title || "Project Image"} />
+      ) : (
+        <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
+          Image not available
+        </div>
+      )}
+      <Title>{project.title || "Untitled Project"}</Title>
+      <Description>{project.description || "No description available."}</Description>
+      <Buttons>
+        {project.github && (
+          <Button
+            href={project.github}
+            target="_blank"
+            variant="outlined"
+            color="primary"
+          >
             View Code
           </Button>
-          <Button href={project.webapp} target="_blank" color="primary">
+        )}
+        {project.webapp && (
+          <Button
+            href={project.webapp}
+            target="_blank"
+            variant="contained"
+            color="primary"
+          >
             View Demo
           </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+        )}
+      </Buttons>
+    </Card>
   );
 };
 
