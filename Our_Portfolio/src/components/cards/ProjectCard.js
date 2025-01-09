@@ -22,7 +22,7 @@ const Card = styled.div`
 // Styled Image
 const Image = styled.img`
   width: 100%;
-  height: auto;
+  height: 30vh;
   border-radius: 10px;
   box-shadow: 0 0 16px rgba(0, 0, 0, 0.2);
 `;

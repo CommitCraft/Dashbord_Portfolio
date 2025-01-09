@@ -11,9 +11,40 @@ const Container = styled.div`
   justify-content: center;
   padding: 50px;
   background-color: ${({ theme }) => theme.background};
-  min-height: 100vh;
 `;
-
+const Wrapper = styled.div`
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1100px;
+  gap: 12px;
+  @media (max-width: 960px) {
+    flex-direction: column;
+  }
+`;
+const Title = styled.div`
+  font-size: 52px;
+  text-align: center;
+  font-weight: 600;
+  margin-top: 20px;
+  color: ${({ theme }) => theme.text_primary};
+  @media (max-width: 768px) {
+    margin-top: 12px;
+    font-size: 32px;
+  }
+`;
+const Desc = styled.div`
+  font-size: 18px;
+  text-align: center;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text_secondary};
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+`;
 const Loading = styled.div`
   font-size: 18px;
   color: ${({ theme }) => theme.text_secondary};
@@ -44,49 +75,43 @@ const MenuBar = styled.div`
 
 const MenuButton = styled(Button)`
   background-color: ${({ active, theme }) =>
-    active ? theme.primary : theme.background}; /* Active button has primary background, inactive is transparent */
+    active ? theme.primary : theme.background};
   color: ${({ active, theme }) =>
-    active ? theme.white : theme.text_primary}; /* Active button has white text, inactive has text_primary */
+    active ? theme.white : theme.text_primary};
   border: ${({ active, theme }) =>
-    active ? `2px solid ${theme.primary}` : "2px solid transparent"}; /* Border for active button */
+    active ? `2px solid ${theme.primary}` : "2px solid transparent"};
   &:hover {
-    background-color: ${({ active, theme }) =>
-      active ? theme.primaryHover : "rgba(0, 0, 0, 0.05)"}; /* Subtle hover effect for inactive buttons */
+    background-color: ${({ theme }) => theme.primaryHover};
   }
   padding: 8px 20px;
   border-radius: 5px;
   text-transform: capitalize;
   font-weight: 500;
+  transition: all 0.3s ease-in-out; /* Smooth hover effect */
 `;
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(["All"]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filteredProjects, setFilteredProjects] = useState([]);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`);
         if (!response.ok) throw new Error("Failed to fetch projects.");
-        const data = await response.json();
 
-        // Ensure data is an array and set projects
+        const data = await response.json();
         const projectList = Array.isArray(data) ? data : data.data || [];
         setProjects(projectList);
 
-        // Extract unique categories
         const uniqueCategories = [
           "All",
           ...new Set(projectList.map((project) => project.category)),
         ];
         setCategories(uniqueCategories);
-
-        // Set initial filtered projects to all projects
-        setFilteredProjects(projectList);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -97,30 +122,39 @@ const Projects = () => {
     fetchProjects();
   }, []);
 
-  // Update filtered projects whenever a category is selected
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
-    if (category === "All") {
-      setFilteredProjects(projects); // Show all projects
-    } else {
-      const filtered = projects.filter((project) => project.category === category);
-      setFilteredProjects(filtered); // Filter by category
-    }
   };
+
+  const filteredProjects =
+    selectedCategory === "All"
+      ? projects
+      : projects.filter((project) => project.category === selectedCategory);
 
   if (loading) return <Loading>Loading projects...</Loading>;
   if (error) return <Error>Error: {error}</Error>;
 
   return (
     <>
+    
+        <Title>Projects</Title>
+        <Desc
+          style={{
+            marginBottom: "40px",
+          }}
+        >
+          I have worked on a wide range of projects. From web apps to android
+          apps. Here are some of my projects.
+        </Desc>
       {/* Menu Bar */}
       <MenuBar>
         {categories.map((category) => (
           <MenuButton
             key={category}
-            active={selectedCategory === category ? 1 : 0} // Dynamically set active state
+            active={selectedCategory === category ? 1 : 0}
             onClick={() => handleCategoryClick(category)}
             variant="contained"
+            aria-label={`Filter by ${category}`}
           >
             {category}
           </MenuButton>
