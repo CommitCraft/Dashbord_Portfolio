@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const VALID_CATEGORIES = ['ALL', 'Full-Stack', 'Frontend', "Mini-Project's", "Android App's"];
+const VALID_CATEGORIES = ['Full-Stack', 'Frontend', "Mini-Project's", "Android App's"];
 
 const Project = sequelize.define('Project', {
   id: {

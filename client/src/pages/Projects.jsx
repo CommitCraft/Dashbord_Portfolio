@@ -16,8 +16,7 @@ const Projects = () => {
     images: [],
   });
   const [categories] = useState([
-    "ALL",
-    "Full-Stack",
+        "Full-Stack",
     "Frontend",
     "Mini-Project's",
     "Android App's",
