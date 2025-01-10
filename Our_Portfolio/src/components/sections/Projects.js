@@ -12,39 +12,47 @@ const Container = styled.div`
   padding: 50px;
   background-color: ${({ theme }) => theme.background};
 `;
+
 const Wrapper = styled.div`
-  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
   width: 100%;
-  max-width: 1100px;
-  gap: 12px;
+  
+  gap: 20px;
+  margin: 0 auto;
+  padding: 20px;
+
   @media (max-width: 960px) {
-    flex-direction: column;
+    gap: 16px;
   }
 `;
-const Title = styled.div`
+
+const Title = styled.h1`
   font-size: 52px;
   text-align: center;
   font-weight: 600;
-  margin-top: 20px;
   color: ${({ theme }) => theme.text_primary};
+  margin-top: 20px;
+
   @media (max-width: 768px) {
-    margin-top: 12px;
     font-size: 32px;
   }
 `;
-const Desc = styled.div`
+
+const Desc = styled.p`
   font-size: 18px;
   text-align: center;
-  font-weight: 600;
+  font-weight: 500;
   color: ${({ theme }) => theme.text_secondary};
+  margin-bottom: 40px;
+
   @media (max-width: 768px) {
     font-size: 16px;
+    margin-bottom: 20px;
   }
 `;
+
 const Loading = styled.div`
   font-size: 18px;
   color: ${({ theme }) => theme.text_secondary};
@@ -69,8 +77,13 @@ const NoProjects = styled.div`
 const MenuBar = styled.div`
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 30px;
+
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
 `;
 
 const MenuButton = styled(Button)`
@@ -87,7 +100,12 @@ const MenuButton = styled(Button)`
   border-radius: 5px;
   text-transform: capitalize;
   font-weight: 500;
-  transition: all 0.3s ease-in-out; /* Smooth hover effect */
+  transition: all 0.3s ease-in-out;
+
+  @media (max-width: 768px) {
+    padding: 6px 16px;
+    font-size: 14px;
+  }
 `;
 
 const Projects = () => {
@@ -135,18 +153,13 @@ const Projects = () => {
   if (error) return <Error>Error: {error}</Error>;
 
   return (
-    <>
-    
-        <Title>Projects</Title>
-        <Desc
-          style={{
-            marginBottom: "40px",
-          }}
-        >
-          I have worked on a wide range of projects. From web apps to android
-          apps. Here are some of my projects.
-        </Desc>
-      {/* Menu Bar */}
+    <Wrapper>
+      <Title>Projects</Title>
+      <Desc>
+        I have worked on a wide range of projects. From web apps to android
+        apps. Here are some of my projects.
+      </Desc>
+
       <MenuBar>
         {categories.map((category) => (
           <MenuButton
@@ -161,7 +174,6 @@ const Projects = () => {
         ))}
       </MenuBar>
 
-      {/* Projects Container */}
       <Container>
         {filteredProjects.length > 0 ? (
           filteredProjects.map((project) => (
@@ -171,7 +183,7 @@ const Projects = () => {
           <NoProjects>No projects available</NoProjects>
         )}
       </Container>
-    </>
+    </Wrapper>
   );
 };
 
