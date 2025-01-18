@@ -26,11 +26,11 @@ const FooterWrapper = styled.div`
   padding: 1rem;
   color: ${({ theme }) => theme.text_primary};
 `;
-const Logo = styled.div`
-  font-weight: 600;
-  font-size: 20px;
-  color: ${({ theme }) => theme.primary};
-`;
+// const Logo = styled.div`
+//   font-weight: 600;
+//   font-size: 20px;
+//   color: ${({ theme }) => theme.primary};
+// `;
 const Nav = styled.ul`
   width: 100%;
   max-width: 800px;
@@ -84,7 +84,7 @@ const Footer = () => {
   return (
     <FooterContainer>
       <FooterWrapper>
-        <Logo>Vipin Kushwaha</Logo>
+       
         <Nav>
           <NavLink href="#About">About</NavLink>
           <NavLink href="#Skills">Skills</NavLink>
